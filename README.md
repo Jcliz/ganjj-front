@@ -1,2 +1,11 @@
-# ganjj-front
-Front-end do e-commerce GANJJ
+
+  # Pixel Perfect React Design
+
+  This is a code bundle for Pixel Perfect React Design. The original project is available at https://www.figma.com/design/bkJ8c2YZTsJFvaIzx35RBu/Pixel-Perfect-React-Design.
+
+  ## Running the code
+
+  Run `npm i` to install the dependencies.
+
+  Run `npm run dev` to start the development server.
+  
