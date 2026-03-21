@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { Logo } from "./Logo";
 import svgPaths from "../../imports/svg-61drw48kvb";
@@ -148,30 +148,29 @@ interface HeaderProps {
 
 export function Header({ activeTab, subNavItems }: HeaderProps) {
   const navigate = useNavigate();
-  const location = useLocation();
+  useLocation();
   const [showMenDropdown, setShowMenDropdown] = useState(false);
   const [showCart, setShowCart] = useState(false);
 
   const defaultSubNav = [
-    { label: "Holiday Gifting" },
-    { label: "New Arrivals" },
-    { label: "Best-Sellers" },
-    { label: "Clothing" },
-    { label: "Tops & Sweaters" },
-    { label: "Pants & Jeans" },
-    { label: "Outerwear" },
-    { label: "Shoes & Bags" },
-    { label: "Lookbook", path: "/lookbook" },
-    { label: "Returns", path: "/returns" },
-    { label: "Contact", path: "/contact" },
-    { label: "Sale", sale: true, path: "/sale" },
+    { label: "Holiday Gifting", active: false },
+    { label: "New Arrivals", active: false },
+    { label: "Best-Sellers", active: false },
+    { label: "Clothing", active: false },
+    { label: "Tops & Sweaters", active: false },
+    { label: "Pants & Jeans", active: false },
+    { label: "Outerwear", active: false },
+    { label: "Shoes & Bags", active: false },
+    { label: "Lookbook", path: "/lookbook", active: false },
+    { label: "Returns", path: "/returns", active: false },
+    { label: "Contact", path: "/contact", active: false },
+    { label: "Sale", sale: true, path: "/sale", active: false },
   ];
 
   const nav = subNavItems ?? defaultSubNav;
 
   return (
     <header className="header">
-      {/* Announcement Bar */}
       <div className="announce-bar" style={{ width: "100%" }}>
         <div className="announce-bar__center">
           <span className="announce-bar__text">Get early access on launches and offers.</span>
@@ -184,7 +183,6 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
         </div>
       </div>
 
-      {/* Primary Nav */}
       <div className="main-nav" style={{ position: "relative" }}>
         <div className="main-nav__inner">
           {/* Left tabs */}
@@ -209,7 +207,7 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
             >
               <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 Admin
               </span>
@@ -255,7 +253,6 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
         ))}
       </div>
 
-      {/* Cart Sidebar */}
       <CartSidebar isOpen={showCart} onClose={() => setShowCart(false)} />
     </header>
   );

@@ -70,14 +70,14 @@ function UserPlusIcon() {
   );
 }
 
-function ArrowLeftIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <line x1="19" y1="12" x2="5" y2="12" stroke="#737373" strokeWidth="1.5" strokeLinecap="round" />
-      <polyline points="11,6 5,12 11,18" stroke="#737373" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+// function ArrowLeftIcon() {
+//   return (
+//     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+//       <line x1="19" y1="12" x2="5" y2="12" stroke="#737373" strokeWidth="1.5" strokeLinecap="round" />
+//       <polyline points="11,6 5,12 11,18" stroke="#737373" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+//     </svg>
+//   );
+// }
 
 // ─── Types ────────────────────────────────────���───────────────────────────────
 
@@ -319,7 +319,7 @@ function DeleteModal({ user, onConfirm, onClose }: { user: User; onConfirm: () =
 const PAGE_SIZE = 6;
 
 export function AdminUsersPage() {
-  const navigate = useNavigate();
+  useNavigate();
   const [users,        setUsers]        = useState<User[]>(INITIAL_USERS);
   const [search,       setSearch]       = useState("");
   const [roleFilter,   setRoleFilter]   = useState<Role | "All">("All");

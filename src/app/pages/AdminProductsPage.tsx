@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { AdminSidebar } from "../components/AdminSidebar";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -73,7 +73,7 @@ function ImageIcon() {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Category  = "Women" | "Men" | "Kids" | "Accessories";
+type Category = "Women" | "Men" | "Kids" | "Accessories";
 type ProdStatus = "Active" | "Draft" | "Archived";
 
 interface Product {
@@ -94,36 +94,36 @@ interface Product {
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
 const SWATCH_PALETTE: Record<string, string> = {
-  Uniform:     "#1a1a1a",
-  "Cream":     "#f5f0e8",
-  "Slate":     "#5c6b7a",
-  "Cognac":    "#8b4a2f",
-  "Forest":    "#2e4a3a",
-  "Dusty Rose":"#c49a9a",
-  "Ivory":     "#f5f2ec",
-  "Navy":      "#1c2d4a",
-  "Sand":      "#c8b89a",
-  "Sage":      "#8a9e8a",
-  "Bone":      "#e8e2d8",
-  "Black":     "#262626",
+  Uniform: "#1a1a1a",
+  "Cream": "#f5f0e8",
+  "Slate": "#5c6b7a",
+  "Cognac": "#8b4a2f",
+  "Forest": "#2e4a3a",
+  "Dusty Rose": "#c49a9a",
+  "Ivory": "#f5f2ec",
+  "Navy": "#1c2d4a",
+  "Sand": "#c8b89a",
+  "Sage": "#8a9e8a",
+  "Bone": "#e8e2d8",
+  "Black": "#262626",
 };
 
 const INITIAL_PRODUCTS: Product[] = [
-  { id:1,  name:"The Organic Cotton Box-Cut Tee",    sku:"EVR-W-TEE-001", category:"Women",      description:"A relaxed box-cut tee cut from 100% organic cotton. Garment-dyed for a lived-in finish.", price:35,  comparePrice:null, stock:142, color:"#1a1a1a", colorName:"Uniform",     status:"Active",   createdAt:"2024-01-10" },
-  { id:2,  name:"The Track Pant",                    sku:"EVR-W-PNT-002", category:"Women",      description:"Tapered track pant in a premium cotton-modal blend. Elastic waistband with drawstring.",   price:68,  comparePrice:null, stock:87,  color:"#f5f0e8", colorName:"Cream",       status:"Active",   createdAt:"2024-01-15" },
-  { id:3,  name:"The Straight Leg Jean",             sku:"EVR-M-JNS-003", category:"Men",        description:"A straight-leg jean in 10 oz Japanese selvedge denim. Subtle fading, five-pocket design.", price:98,  comparePrice:null, stock:54,  color:"#5c6b7a", colorName:"Slate",       status:"Active",   createdAt:"2024-02-01" },
-  { id:4,  name:"The Italian Leather Belt",          sku:"EVR-A-BLT-004", category:"Accessories",description:"Full-grain Italian leather with a matte metal buckle. Available in 1\" width.",             price:55,  comparePrice:75,   stock:33,  color:"#8b4a2f", colorName:"Cognac",      status:"Active",   createdAt:"2024-02-14" },
-  { id:5,  name:"The Merino Turtleneck",             sku:"EVR-W-KNT-005", category:"Women",      description:"A fine-gauge merino wool turtleneck. Temperature-regulating and naturally wrinkle-resistant.",price:120,comparePrice:null, stock:61,  color:"#2e4a3a", colorName:"Forest",      status:"Active",   createdAt:"2024-02-20" },
-  { id:6,  name:"The ReNew Fleece Jacket",           sku:"EVR-M-JKT-006", category:"Men",        description:"Made from 100% recycled plastic bottles. Cozy fleece with a stand-up collar.",             price:135, comparePrice:168,  stock:4,   color:"#c49a9a", colorName:"Dusty Rose",  status:"Active",   createdAt:"2024-03-01" },
-  { id:7,  name:"The Kids Organic Sweatshirt",       sku:"EVR-K-SWT-007", category:"Kids",       description:"A classic pullover sweatshirt in 100% organic cotton fleece. Unisex fit.",                  price:48,  comparePrice:null, stock:0,   color:"#f5f2ec", colorName:"Ivory",       status:"Draft",    createdAt:"2024-03-10" },
-  { id:8,  name:"The Oxford Shirt",                  sku:"EVR-M-SHT-008", category:"Men",        description:"A classic Oxford shirt in stonewashed GOTS-certified cotton. Slightly boxy fit.",           price:78,  comparePrice:null, stock:99,  color:"#1c2d4a", colorName:"Navy",        status:"Active",   createdAt:"2024-03-15" },
-  { id:9,  name:"The Canvas Tote",                   sku:"EVR-A-BAG-009", category:"Accessories",description:"Heavyweight 18 oz canvas with reinforced stitching. Fits a 13\" laptop.",                   price:35,  comparePrice:null, stock:200, color:"#c8b89a", colorName:"Sand",        status:"Active",   createdAt:"2024-04-01" },
-  { id:10, name:"The Linen Shirt Dress",             sku:"EVR-W-DRS-010", category:"Women",      description:"A relaxed shirt dress in 100% Belgian linen. Adjustable waist tie.",                       price:110, comparePrice:null, stock:27,  color:"#8a9e8a", colorName:"Sage",        status:"Active",   createdAt:"2024-04-08" },
-  { id:11, name:"The Reversible Sherpa Jacket",      sku:"EVR-M-JKT-011", category:"Men",        description:"Sherpa fleece on one side, smooth nylon on the other. Fully reversible.",                  price:198, comparePrice:248,  stock:12,  color:"#e8e2d8", colorName:"Bone",        status:"Active",   createdAt:"2024-04-20" },
-  { id:12, name:"The Ribbed Tank",                   sku:"EVR-W-TNK-012", category:"Women",      description:"A fine-rib tank in Pima cotton. Great layering piece or worn alone.",                      price:28,  comparePrice:null, stock:0,   color:"#262626", colorName:"Black",       status:"Archived", createdAt:"2024-05-01" },
+  { id: 1, name: "The Organic Cotton Box-Cut Tee", sku: "EVR-W-TEE-001", category: "Women", description: "A relaxed box-cut tee cut from 100% organic cotton. Garment-dyed for a lived-in finish.", price: 35, comparePrice: null, stock: 142, color: "#1a1a1a", colorName: "Uniform", status: "Active", createdAt: "2024-01-10" },
+  { id: 2, name: "The Track Pant", sku: "EVR-W-PNT-002", category: "Women", description: "Tapered track pant in a premium cotton-modal blend. Elastic waistband with drawstring.", price: 68, comparePrice: null, stock: 87, color: "#f5f0e8", colorName: "Cream", status: "Active", createdAt: "2024-01-15" },
+  { id: 3, name: "The Straight Leg Jean", sku: "EVR-M-JNS-003", category: "Men", description: "A straight-leg jean in 10 oz Japanese selvedge denim. Subtle fading, five-pocket design.", price: 98, comparePrice: null, stock: 54, color: "#5c6b7a", colorName: "Slate", status: "Active", createdAt: "2024-02-01" },
+  { id: 4, name: "The Italian Leather Belt", sku: "EVR-A-BLT-004", category: "Accessories", description: "Full-grain Italian leather with a matte metal buckle. Available in 1\" width.", price: 55, comparePrice: 75, stock: 33, color: "#8b4a2f", colorName: "Cognac", status: "Active", createdAt: "2024-02-14" },
+  { id: 5, name: "The Merino Turtleneck", sku: "EVR-W-KNT-005", category: "Women", description: "A fine-gauge merino wool turtleneck. Temperature-regulating and naturally wrinkle-resistant.", price: 120, comparePrice: null, stock: 61, color: "#2e4a3a", colorName: "Forest", status: "Active", createdAt: "2024-02-20" },
+  { id: 6, name: "The ReNew Fleece Jacket", sku: "EVR-M-JKT-006", category: "Men", description: "Made from 100% recycled plastic bottles. Cozy fleece with a stand-up collar.", price: 135, comparePrice: 168, stock: 4, color: "#c49a9a", colorName: "Dusty Rose", status: "Active", createdAt: "2024-03-01" },
+  { id: 7, name: "The Kids Organic Sweatshirt", sku: "EVR-K-SWT-007", category: "Kids", description: "A classic pullover sweatshirt in 100% organic cotton fleece. Unisex fit.", price: 48, comparePrice: null, stock: 0, color: "#f5f2ec", colorName: "Ivory", status: "Draft", createdAt: "2024-03-10" },
+  { id: 8, name: "The Oxford Shirt", sku: "EVR-M-SHT-008", category: "Men", description: "A classic Oxford shirt in stonewashed GOTS-certified cotton. Slightly boxy fit.", price: 78, comparePrice: null, stock: 99, color: "#1c2d4a", colorName: "Navy", status: "Active", createdAt: "2024-03-15" },
+  { id: 9, name: "The Canvas Tote", sku: "EVR-A-BAG-009", category: "Accessories", description: "Heavyweight 18 oz canvas with reinforced stitching. Fits a 13\" laptop.", price: 35, comparePrice: null, stock: 200, color: "#c8b89a", colorName: "Sand", status: "Active", createdAt: "2024-04-01" },
+  { id: 10, name: "The Linen Shirt Dress", sku: "EVR-W-DRS-010", category: "Women", description: "A relaxed shirt dress in 100% Belgian linen. Adjustable waist tie.", price: 110, comparePrice: null, stock: 27, color: "#8a9e8a", colorName: "Sage", status: "Active", createdAt: "2024-04-08" },
+  { id: 11, name: "The Reversible Sherpa Jacket", sku: "EVR-M-JKT-011", category: "Men", description: "Sherpa fleece on one side, smooth nylon on the other. Fully reversible.", price: 198, comparePrice: 248, stock: 12, color: "#e8e2d8", colorName: "Bone", status: "Active", createdAt: "2024-04-20" },
+  { id: 12, name: "The Ribbed Tank", sku: "EVR-W-TNK-012", category: "Women", description: "A fine-rib tank in Pima cotton. Great layering piece or worn alone.", price: 28, comparePrice: null, stock: 0, color: "#262626", colorName: "Black", status: "Archived", createdAt: "2024-05-01" },
 ];
 
-const CATEGORIES: Category[]    = ["Women", "Men", "Kids", "Accessories"];
+const CATEGORIES: Category[] = ["Women", "Men", "Kids", "Accessories"];
 const PROD_STATUSES: ProdStatus[] = ["Active", "Draft", "Archived"];
 const COLOR_OPTIONS = Object.entries(SWATCH_PALETTE).map(([name, hex]) => ({ name, hex }));
 
@@ -149,8 +149,8 @@ function generateSku(name: string, cat: Category, id: number) {
 
 function StatusBadge({ status }: { status: ProdStatus }) {
   const cfg: Record<ProdStatus, { dot: string; label: string }> = {
-    Active:   { dot: "#2a7a3b", label: "#2a7a3b" },
-    Draft:    { dot: "#f5a623", label: "#b07a0a" },
+    Active: { dot: "#2a7a3b", label: "#2a7a3b" },
+    Draft: { dot: "#f5a623", label: "#b07a0a" },
     Archived: { dot: "#b0aeae", label: "#737373" },
   };
   return (
@@ -165,7 +165,7 @@ function StatusBadge({ status }: { status: ProdStatus }) {
 
 function StockBadge({ stock }: { stock: number }) {
   if (stock === 0) return <span style={{ fontSize: 11, color: "#d0021b", letterSpacing: "0.4px" }}>Out of stock</span>;
-  if (stock < 10)  return <span style={{ fontSize: 11, color: "#f5a623", letterSpacing: "0.4px" }}>Low · {stock}</span>;
+  if (stock < 10) return <span style={{ fontSize: 11, color: "#f5a623", letterSpacing: "0.4px" }}>Low · {stock}</span>;
   return <span style={{ fontSize: 11, color: "#262626", letterSpacing: "0.4px" }}>{stock}</span>;
 }
 
@@ -214,24 +214,24 @@ interface ProdFormProps {
 
 function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
   const isEdit = !!initial;
-  const [name,         setName]         = useState(initial?.name         ?? "");
-  const [sku,          setSku]          = useState(initial?.sku          ?? "");
-  const [category,     setCategory]     = useState<Category>(initial?.category ?? "Women");
-  const [description,  setDescription]  = useState(initial?.description  ?? "");
-  const [price,        setPrice]        = useState(String(initial?.price   ?? ""));
+  const [name, setName] = useState(initial?.name ?? "");
+  const [sku, setSku] = useState(initial?.sku ?? "");
+  const [category, setCategory] = useState<Category>(initial?.category ?? "Women");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [price, setPrice] = useState(String(initial?.price ?? ""));
   const [comparePrice, setComparePrice] = useState(String(initial?.comparePrice ?? ""));
-  const [stock,        setStock]        = useState(String(initial?.stock   ?? ""));
-  const [colorName,    setColorName]    = useState(initial?.colorName ?? "Black");
-  const [status,       setStatus]       = useState<ProdStatus>(initial?.status ?? "Draft");
-  const [errors,       setErrors]       = useState<ProdFormErrors>({});
-  const [focused,      setFocused]      = useState<string | null>(null);
+  const [stock, setStock] = useState(String(initial?.stock ?? ""));
+  const [colorName, setColorName] = useState(initial?.colorName ?? "Black");
+  const [status, setStatus] = useState<ProdStatus>(initial?.status ?? "Draft");
+  const [errors, setErrors] = useState<ProdFormErrors>({});
+  const [focused, setFocused] = useState<string | null>(null);
 
   const selectedColor = SWATCH_PALETTE[colorName] ?? "#262626";
 
   function validate(): ProdFormErrors {
     const e: ProdFormErrors = {};
     if (!name.trim()) e.name = "Product name is required.";
-    if (!sku.trim())  e.sku  = "SKU is required.";
+    if (!sku.trim()) e.sku = "SKU is required.";
     const p = parseFloat(price);
     if (isNaN(p) || p < 0) e.price = "Enter a valid price.";
     const s = parseInt(stock);
@@ -239,7 +239,7 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
     return e;
   }
 
-  function handleSubmit(ev: React.FormEvent) {
+  function handleSubmit(ev: React.SyntheticEvent) {
     ev.preventDefault();
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
@@ -451,17 +451,17 @@ function DeleteModal({ product, onConfirm, onClose }: { product: Product; onConf
 const PAGE_SIZE = 7;
 
 export function AdminProductsPage() {
-  const [products,       setProducts]      = useState<Product[]>(INITIAL_PRODUCTS);
-  const [search,         setSearch]        = useState("");
-  const [catFilter,      setCatFilter]     = useState<Category | "All">("All");
-  const [statusFilter,   setStatusFilter]  = useState<ProdStatus | "All">("All");
-  const [sortBy,         setSortBy]        = useState<"name" | "price" | "stock" | "createdAt">("createdAt");
-  const [sortDir,        setSortDir]       = useState<"asc" | "desc">("desc");
-  const [page,           setPage]          = useState(1);
-  const [showForm,       setShowForm]      = useState(false);
-  const [editTarget,     setEditTarget]    = useState<Product | null>(null);
-  const [deleteTarget,   setDeleteTarget]  = useState<Product | null>(null);
-  const [toast,          setToast]         = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [search, setSearch] = useState("");
+  const [catFilter, setCatFilter] = useState<Category | "All">("All");
+  const [statusFilter, setStatusFilter] = useState<ProdStatus | "All">("All");
+  const [sortBy, setSortBy] = useState<"name" | "price" | "stock" | "createdAt">("createdAt");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [page, setPage] = useState(1);
+  const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState<Product | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -472,16 +472,16 @@ export function AdminProductsPage() {
     let list = products.filter(p => {
       const q = search.toLowerCase();
       const matchSearch = !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.colorName.toLowerCase().includes(q);
-      const matchCat    = catFilter    === "All" || p.category === catFilter;
-      const matchStatus = statusFilter === "All" || p.status   === statusFilter;
+      const matchCat = catFilter === "All" || p.category === catFilter;
+      const matchStatus = statusFilter === "All" || p.status === statusFilter;
       return matchSearch && matchCat && matchStatus;
     });
 
     list = [...list].sort((a, b) => {
       let cmp = 0;
-      if (sortBy === "name")      cmp = a.name.localeCompare(b.name);
-      if (sortBy === "price")     cmp = a.price - b.price;
-      if (sortBy === "stock")     cmp = a.stock - b.stock;
+      if (sortBy === "name") cmp = a.name.localeCompare(b.name);
+      if (sortBy === "price") cmp = a.price - b.price;
+      if (sortBy === "stock") cmp = a.stock - b.stock;
       if (sortBy === "createdAt") cmp = a.createdAt.localeCompare(b.createdAt);
       return sortDir === "asc" ? cmp : -cmp;
     });
@@ -490,7 +490,7 @@ export function AdminProductsPage() {
   }, [products, search, catFilter, statusFilter, sortBy, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   function handleSort(col: "name" | "price" | "stock" | "createdAt") {
     if (sortBy === col) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -536,10 +536,10 @@ export function AdminProductsPage() {
     );
   }
 
-  const activeCount   = products.filter(p => p.status === "Active").length;
-  const draftCount    = products.filter(p => p.status === "Draft").length;
-  const outOfStock    = products.filter(p => p.stock === 0).length;
-  const onSaleCount   = products.filter(p => p.comparePrice != null).length;
+  const activeCount = products.filter(p => p.status === "Active").length;
+  const draftCount = products.filter(p => p.status === "Draft").length;
+  const outOfStock = products.filter(p => p.stock === 0).length;
+  const onSaleCount = products.filter(p => p.comparePrice != null).length;
 
   return (
     <div className="admin-page">
@@ -564,12 +564,12 @@ export function AdminProductsPage() {
         {/* Stats */}
         <div className="admin-stats">
           {[
-            { label: "Total Items",   value: products.length },
-            { label: "Active",        value: activeCount },
-            { label: "Drafts",        value: draftCount },
-            { label: "Archived",      value: products.filter(p => p.status === "Archived").length },
-            { label: "On Sale",       value: onSaleCount },
-            { label: "Out of Stock",  value: outOfStock },
+            { label: "Total Items", value: products.length },
+            { label: "Active", value: activeCount },
+            { label: "Drafts", value: draftCount },
+            { label: "Archived", value: products.filter(p => p.status === "Archived").length },
+            { label: "On Sale", value: onSaleCount },
+            { label: "Out of Stock", value: outOfStock },
           ].map(s => (
             <div key={s.label} className="admin-stat">
               <p className="admin-stat__value">{s.value}</p>
@@ -618,13 +618,13 @@ export function AdminProductsPage() {
           <table className="admin-table">
             <thead>
               <tr>
-                <SortTh col="name"      label="Product" />
+                <SortTh col="name" label="Product" />
                 <th className="admin-table__th">SKU</th>
                 <th className="admin-table__th">Category</th>
-                <SortTh col="price"     label="Price"   right />
-                <SortTh col="stock"     label="Stock"   right />
+                <SortTh col="price" label="Price" right />
+                <SortTh col="stock" label="Stock" right />
                 <th className="admin-table__th">Status</th>
-                <SortTh col="createdAt" label="Added"   />
+                <SortTh col="createdAt" label="Added" />
                 <th className="admin-table__th admin-table__th--actions">Actions</th>
               </tr>
             </thead>
