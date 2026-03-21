@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router";
 import { Logo } from "./Logo";
 import svgPaths from "../../imports/svg-61drw48kvb";
 import { navDropImg1, navDropImg2 } from "../../imports/assets";
+import { CartSidebar } from "./CartSidebar";
 
 interface NavDropdownProps {
   onClose: () => void;
@@ -149,6 +150,7 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [showMenDropdown, setShowMenDropdown] = useState(false);
+  const [showCart, setShowCart] = useState(false);
 
   const defaultSubNav = [
     { label: "Holiday Gifting" },
@@ -159,7 +161,10 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
     { label: "Pants & Jeans" },
     { label: "Outerwear" },
     { label: "Shoes & Bags" },
-    { label: "Sale", sale: true },
+    { label: "Lookbook", path: "/lookbook" },
+    { label: "Returns", path: "/returns" },
+    { label: "Contact", path: "/contact" },
+    { label: "Sale", sale: true, path: "/sale" },
   ];
 
   const nav = subNavItems ?? defaultSubNav;
@@ -197,6 +202,18 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
             </div>
             <div className="main-nav__tab" onClick={() => navigate("/about")} style={{ cursor: "pointer" }}>About</div>
             <div className="main-nav__tab" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>Everworld Stories</div>
+            <div
+              className="main-nav__tab main-nav__tab--admin"
+              onClick={() => navigate("/admin/users")}
+              style={{ cursor: "pointer" }}
+            >
+              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Admin
+              </span>
+            </div>
           </div>
 
           {/* Logo (centered) */}
@@ -207,10 +224,10 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
             <button className="main-nav__icon-btn" onClick={() => navigate("/search")} aria-label="Search">
               <SearchIcon />
             </button>
-            <button className="main-nav__icon-btn" aria-label="Account">
+            <button className="main-nav__icon-btn" aria-label="Account" onClick={() => navigate("/login")}>
               <UserIcon />
             </button>
-            <button className="main-nav__icon-btn" aria-label="Cart">
+            <button className="main-nav__icon-btn" aria-label="Cart" onClick={() => setShowCart(true)}>
               <CartIcon />
             </button>
           </div>
@@ -237,6 +254,9 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
           </div>
         ))}
       </div>
+
+      {/* Cart Sidebar */}
+      <CartSidebar isOpen={showCart} onClose={() => setShowCart(false)} />
     </header>
   );
 }

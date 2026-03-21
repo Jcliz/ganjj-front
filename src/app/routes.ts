@@ -5,12 +5,36 @@ import { AboutPage } from "./pages/AboutPage";
 import { StoresPage } from "./pages/StoresPage";
 import { ListingPage } from "./pages/ListingPage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
+import { AdminUsersPage } from "./pages/AdminUsersPage";
+import { AdminProductsPage } from "./pages/AdminProductsPage";
+import { AdminDashboardPage } from "./pages/AdminDashboardPage";
+import { ReturnsPage } from "./pages/ReturnsPage";
+import { ContactPage } from "./pages/ContactPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { CheckoutPage } from "./pages/CheckoutPage";
+import { SalePage } from "./pages/SalePage";
+import { LookbookPage } from "./pages/LookbookPage";
 
 export const router = createBrowserRouter([
-  { path: "/",               Component: LandingPage       },
-  { path: "/search",         Component: SearchPage        },
-  { path: "/about",          Component: AboutPage         },
-  { path: "/stores",         Component: StoresPage        },
-  { path: "/listing",        Component: ListingPage       },
-  { path: "/product/:id",    Component: ProductDetailPage },
+  { path: "/",                  Component: LandingPage          },
+  { path: "/login",             Component: LoginPage            },
+  { path: "/register",          Component: RegisterPage         },
+  { path: "/forgot-password",   Component: ForgotPasswordPage   },
+  { path: "/search",            Component: SearchPage           },
+  { path: "/about",             Component: AboutPage            },
+  { path: "/stores",            Component: StoresPage           },
+  { path: "/listing",           Component: ListingPage          },
+  { path: "/product/:id",       Component: ProductDetailPage    },
+  { path: "/returns",           Component: ReturnsPage          },
+  { path: "/contact",           Component: ContactPage          },
+  { path: "/settings",          Component: SettingsPage         },
+  { path: "/checkout",          Component: CheckoutPage         },
+  { path: "/sale",              Component: SalePage             },
+  { path: "/lookbook",          Component: LookbookPage         },
+  { path: "/admin/dashboard",   Component: AdminDashboardPage   },
+  { path: "/admin/users",       Component: AdminUsersPage       },
+  { path: "/admin/products",    Component: AdminProductsPage    },
 ]);
