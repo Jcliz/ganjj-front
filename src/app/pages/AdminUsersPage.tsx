@@ -2,8 +2,6 @@ import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { AdminSidebar } from "../components/AdminSidebar";
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
-
 function SearchIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -70,17 +68,6 @@ function UserPlusIcon() {
   );
 }
 
-// function ArrowLeftIcon() {
-//   return (
-//     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-//       <line x1="19" y1="12" x2="5" y2="12" stroke="#737373" strokeWidth="1.5" strokeLinecap="round" />
-//       <polyline points="11,6 5,12 11,18" stroke="#737373" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-//     </svg>
-//   );
-// }
-
-// ─── Types ────────────────────────────────────���───────────────────────────────
-
 type Role   = "Admin" | "Editor" | "Customer";
 type Status = "Active" | "Inactive";
 
@@ -91,13 +78,11 @@ interface User {
   email: string;
   role: Role;
   status: Status;
-  joined: string;   // ISO date string
+  joined: string;  
 }
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
 const INITIAL_USERS: User[] = [
-  { id: 1,  firstName: "Amelia",   lastName: "Chen",      email: "amelia.chen@everlane.com",   role: "Admin",    status: "Active",   joined: "2022-03-12" },
+  { id: 1,  firstName: "Amelia",   lastName: "Chen",      email: "amelia.chen@everlane.com",    role: "Admin",    status: "Active",   joined: "2022-03-12" },
   { id: 2,  firstName: "Marcus",   lastName: "Rivera",    email: "m.rivera@everlane.com",       role: "Editor",   status: "Active",   joined: "2022-07-04" },
   { id: 3,  firstName: "Sophie",   lastName: "Nguyen",    email: "sophie.n@everlane.com",       role: "Customer", status: "Active",   joined: "2023-01-19" },
   { id: 4,  firstName: "Jordan",   lastName: "Kim",       email: "j.kim@everlane.com",          role: "Editor",   status: "Inactive", joined: "2022-11-30" },
@@ -114,8 +99,6 @@ const STATUSES: Status[] = ["Active", "Inactive"];
 
 let nextId = INITIAL_USERS.length + 1;
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 function initials(u: User) {
   return (u.firstName[0] + u.lastName[0]).toUpperCase();
 }
@@ -126,10 +109,25 @@ function avatarColor(id: number) {
 }
 
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleDateString("pt-BR", { month: "short", day: "numeric", year: "numeric" });
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+function roleLabel(role: Role) {
+  const labels: Record<Role, string> = {
+    Admin: "Administrador",
+    Editor: "Editor",
+    Customer: "Cliente",
+  };
+  return labels[role];
+}
+
+function statusLabel(status: Status) {
+  const labels: Record<Status, string> = {
+    Active: "Ativo",
+    Inactive: "Inativo",
+  };
+  return labels[status];
+}
 
 function RoleBadge({ role }: { role: Role }) {
   const styles: Record<Role, React.CSSProperties> = {
@@ -145,7 +143,7 @@ function RoleBadge({ role }: { role: Role }) {
       textTransform: "uppercase", whiteSpace: "nowrap",
     }}>
       {role === "Admin" && <ShieldIcon />}
-      {role}
+      {roleLabel(role)}
     </span>
   );
 }
@@ -160,12 +158,10 @@ function StatusBadge({ status }: { status: Status }) {
         width: 6, height: 6, borderRadius: "50%",
         background: status === "Active" ? "#2a7a3b" : "#b0aeae", flexShrink: 0,
       }} />
-      {status}
+      {statusLabel(status)}
     </span>
   );
 }
-
-// ─── Form modal ───────────────────────────────────────────────────────────────
 
 interface FormErrors { firstName?: string; lastName?: string; email?: string; role?: string; }
 
@@ -187,9 +183,9 @@ function UserFormModal({ initial, onSave, onClose }: UserFormProps) {
 
   function validate() {
     const e: FormErrors = {};
-    if (!firstName.trim()) e.firstName = "Required.";
-    if (!lastName.trim())  e.lastName  = "Required.";
-    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = "Valid email required.";
+    if (!firstName.trim()) e.firstName = "Campo obrigatorio.";
+    if (!lastName.trim())  e.lastName  = "Campo obrigatorio.";
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = "Informe um e-mail valido.";
     return e;
   }
 
@@ -226,29 +222,28 @@ function UserFormModal({ initial, onSave, onClose }: UserFormProps) {
   return (
     <div className="admin-modal-backdrop" onClick={onClose}>
       <div className="admin-modal" onClick={e => e.stopPropagation()}>
-        {/* Header */}
         <div className="admin-modal__head">
-          <p className="admin-modal__title">{isEdit ? "Edit User" : "New User"}</p>
+          <p className="admin-modal__title">{isEdit ? "Editar usuário" : "Novo usuário"}</p>
           <button className="admin-modal__close" onClick={onClose}><CloseIcon /></button>
         </div>
 
         <form className="admin-form" onSubmit={handleSubmit} noValidate>
-          <div className="admin-form__row">
-            {field("adm-fn", "FIRST NAME", firstName, setFirstName, "text", errors.firstName)}
-            {field("adm-ln", "LAST NAME",  lastName,  setLastName,  "text", errors.lastName)}
-          </div>
-          {field("adm-em", "EMAIL ADDRESS", email, setEmail, "email", errors.email)}
 
-          {/* Role */}
+          <div className="admin-form__row">
+            {field("adm-fn", "NOME", firstName, setFirstName, "text", errors.firstName)}
+            {field("adm-ln", "SOBRENOME",  lastName,  setLastName,  "text", errors.lastName)}
+          </div>
+          {field("adm-em", "ENDERECO DE E-MAIL", email, setEmail, "email", errors.email)}
+
           <div className="admin-form__field">
-            <label className="admin-form__label">ROLE</label>
+            <label className="admin-form__label">FUNÇÃO</label>
             <div className="admin-form__select-wrap" style={{ borderColor: "#dddbdc" }}>
               <select
                 className="admin-form__select"
                 value={role}
                 onChange={e => setRole(e.target.value as Role)}
               >
-                {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                {ROLES.map(r => <option key={r} value={r}>{roleLabel(r)}</option>)}
               </select>
               <span style={{ pointerEvents: "none", position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)" }}>
                 <ChevronIcon dir="down" />
@@ -256,7 +251,6 @@ function UserFormModal({ initial, onSave, onClose }: UserFormProps) {
             </div>
           </div>
 
-          {/* Status */}
           <div className="admin-form__field">
             <label className="admin-form__label">STATUS</label>
             <div className="admin-form__radios">
@@ -269,17 +263,16 @@ function UserFormModal({ initial, onSave, onClose }: UserFormProps) {
                   >
                     {status === s && <span className="admin-form__radio-dot" />}
                   </span>
-                  {s}
+                  {statusLabel(s)}
                 </label>
               ))}
             </div>
           </div>
 
-          {/* Actions */}
           <div className="admin-modal__actions">
-            <button type="button" className="admin-btn admin-btn--ghost" onClick={onClose}>Cancel</button>
+            <button type="button" className="admin-btn admin-btn--ghost" onClick={onClose}>Cancelar</button>
             <button type="submit" className="admin-btn admin-btn--dark">
-              {isEdit ? "Save Changes" : "Create User"}
+              {isEdit ? "Salvar alteracoes" : "Criar usuário"}
             </button>
           </div>
         </form>
@@ -288,33 +281,29 @@ function UserFormModal({ initial, onSave, onClose }: UserFormProps) {
   );
 }
 
-// ─── Delete confirm modal ─────────────────────────────────────────────────────
-
 function DeleteModal({ user, onConfirm, onClose }: { user: User; onConfirm: () => void; onClose: () => void }) {
   return (
     <div className="admin-modal-backdrop" onClick={onClose}>
       <div className="admin-modal admin-modal--sm" onClick={e => e.stopPropagation()}>
         <div className="admin-modal__head">
-          <p className="admin-modal__title">Delete User</p>
+          <p className="admin-modal__title">Excluir usuário</p>
           <button className="admin-modal__close" onClick={onClose}><CloseIcon /></button>
         </div>
         <div className="admin-modal__body">
           <p className="admin-delete__msg">
-            Are you sure you want to delete{" "}
+            Tem certeza que deseja excluir{" "}
             <strong>{user.firstName} {user.lastName}</strong>?
-            This action cannot be undone.
+            Esta ação nao pode ser desfeita.
           </p>
         </div>
         <div className="admin-modal__actions">
-          <button className="admin-btn admin-btn--ghost" onClick={onClose}>Cancel</button>
-          <button className="admin-btn admin-btn--danger" onClick={onConfirm}>Delete</button>
+          <button className="admin-btn admin-btn--ghost" onClick={onClose}>Cancelar</button>
+          <button className="admin-btn admin-btn--danger" onClick={onConfirm}>Excluir</button>
         </div>
       </div>
     </div>
   );
 }
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 6;
 
@@ -337,7 +326,6 @@ export function AdminUsersPage() {
     setTimeout(() => setToast(null), 2800);
   }
 
-  // Filter + sort
   const filtered = useMemo(() => {
     let list = users.filter(u => {
       const q = search.toLowerCase();
@@ -374,20 +362,20 @@ export function AdminUsersPage() {
     const newUser: User = { ...data, id: nextId++, joined: new Date().toISOString().slice(0, 10) };
     setUsers(prev => [newUser, ...prev]);
     setShowForm(false);
-    showToast("User created successfully.");
+    showToast("usuário criado com sucesso.");
     setPage(1);
   }
 
   function handleEdit(data: Omit<User, "id" | "joined">) {
     setUsers(prev => prev.map(u => u.id === editTarget!.id ? { ...u, ...data } : u));
     setEditTarget(null);
-    showToast("User updated successfully.");
+    showToast("usuário atualizado com sucesso.");
   }
 
   function handleDelete() {
     setUsers(prev => prev.filter(u => u.id !== deleteTarget!.id));
     setDeleteTarget(null);
-    showToast("User deleted.");
+    showToast("usuário excluido.");
     if (paginated.length === 1 && page > 1) setPage(p => p - 1);
   }
 
@@ -412,32 +400,28 @@ export function AdminUsersPage() {
 
   return (
     <div className="admin-page">
-      {/* ── Sidebar ── */}
       <AdminSidebar activeItem="users" />
 
-      {/* ── Main content ── */}
       <main className="admin-main">
-        {/* Page header */}
         <div className="admin-topbar">
           <div>
-            <p className="admin-topbar__title">User Management</p>
-            <p className="admin-topbar__sub">{users.length} total · {activeCount} active · {adminCount} admins</p>
+            <p className="admin-topbar__title">Gestão de usuários</p>
+            <p className="admin-topbar__sub">{users.length} total · {activeCount} ativos · {adminCount} administradores</p>
           </div>
           <button className="admin-btn admin-btn--dark admin-btn--icon" onClick={() => { setEditTarget(null); setShowForm(true); }}>
             <UserPlusIcon />
-            New User
+            Novo usuário
           </button>
         </div>
 
-        {/* Stats strip */}
         <div className="admin-stats">
           {[
-            { label: "Total Users",    value: users.length },
-            { label: "Active",         value: users.filter(u => u.status === "Active").length },
-            { label: "Admins",         value: users.filter(u => u.role === "Admin").length },
-            { label: "Editors",        value: users.filter(u => u.role === "Editor").length },
-            { label: "Customers",      value: users.filter(u => u.role === "Customer").length },
-            { label: "Inactive",       value: users.filter(u => u.status === "Inactive").length },
+            { label: "Total de usuários", value: users.length },
+            { label: "Ativos",            value: users.filter(u => u.status === "Active").length },
+            { label: "Administradores",   value: users.filter(u => u.role === "Admin").length },
+            { label: "Editores",          value: users.filter(u => u.role === "Editor").length },
+            { label: "Clientes",          value: users.filter(u => u.role === "Customer").length },
+            { label: "Inativos",          value: users.filter(u => u.status === "Inactive").length },
           ].map(s => (
             <div key={s.label} className="admin-stat">
               <p className="admin-stat__value">{s.value}</p>
@@ -446,80 +430,75 @@ export function AdminUsersPage() {
           ))}
         </div>
 
-        {/* Toolbar: search + filters */}
         <div className="admin-toolbar">
           <div className="admin-search">
             <span className="admin-search__icon"><SearchIcon /></span>
             <input
               className="admin-search__input"
-              placeholder="Search by name or email…"
+              placeholder="Buscar por nome ou e-mail..."
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1); }}
             />
           </div>
 
           <div className="admin-filters">
-            {/* Role filter */}
+
             <div className="admin-filter-select-wrap">
               <select
                 className="admin-filter-select"
                 value={roleFilter}
                 onChange={e => { setRoleFilter(e.target.value as Role | "All"); setPage(1); }}
               >
-                <option value="All">All Roles</option>
-                {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                <option value="All">Todas as funções</option>
+                {ROLES.map(r => <option key={r} value={r}>{roleLabel(r)}</option>)}
               </select>
               <span className="admin-filter-chevron"><ChevronIcon dir="down" /></span>
             </div>
 
-            {/* Status filter */}
             <div className="admin-filter-select-wrap">
               <select
                 className="admin-filter-select"
                 value={statusFilter}
                 onChange={e => { setStatusFilter(e.target.value as Status | "All"); setPage(1); }}
               >
-                <option value="All">All Statuses</option>
-                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                <option value="All">Todos os status</option>
+                {STATUSES.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
               </select>
               <span className="admin-filter-chevron"><ChevronIcon dir="down" /></span>
             </div>
 
-            {/* Clear */}
             {(search || roleFilter !== "All" || statusFilter !== "All") && (
               <button
                 className="admin-btn admin-btn--ghost"
                 onClick={() => { setSearch(""); setRoleFilter("All"); setStatusFilter("All"); setPage(1); }}
               >
-                Clear
+                Limpar
               </button>
             )}
           </div>
         </div>
 
-        {/* Table */}
         <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
               <tr>
-                <SortTh col="name"   label="User" />
-                <th className="admin-table__th">Email</th>
-                <SortTh col="role"   label="Role" />
+                <SortTh col="name"   label="usuário" />
+                <th className="admin-table__th">E-mail</th>
+                <SortTh col="role"   label="Função" />
                 <th className="admin-table__th">Status</th>
-                <SortTh col="joined" label="Joined" />
-                <th className="admin-table__th admin-table__th--actions">Actions</th>
+                <SortTh col="joined" label="Entrada" />
+                <th className="admin-table__th admin-table__th--actions">Ações</th>
               </tr>
             </thead>
             <tbody>
               {paginated.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="admin-table__empty">
-                    No users match your filters.
+                    Nenhum usuário corresponde aos filtros.
                   </td>
                 </tr>
               ) : paginated.map(u => (
                 <tr key={u.id} className="admin-table__row">
-                  {/* User */}
                   <td className="admin-table__td">
                     <div className="admin-user-cell">
                       <div className="admin-avatar" style={{ background: avatarColor(u.id) }}>
@@ -528,29 +507,24 @@ export function AdminUsersPage() {
                       <span className="admin-user-cell__name">{u.firstName} {u.lastName}</span>
                     </div>
                   </td>
-                  {/* Email */}
                   <td className="admin-table__td admin-table__td--muted">{u.email}</td>
-                  {/* Role */}
                   <td className="admin-table__td"><RoleBadge role={u.role} /></td>
-                  {/* Status */}
                   <td className="admin-table__td"><StatusBadge status={u.status} /></td>
-                  {/* Joined */}
                   <td className="admin-table__td admin-table__td--muted">{fmtDate(u.joined)}</td>
-                  {/* Actions */}
                   <td className="admin-table__td admin-table__td--actions">
                     <button
                       className="admin-action-btn"
-                      title="Edit"
+                      title="Editar"
                       onClick={() => { setEditTarget(u); setShowForm(true); }}
                     >
-                      <EditIcon /> Edit
+                      <EditIcon /> Editar
                     </button>
                     <button
                       className="admin-action-btn admin-action-btn--danger"
-                      title="Delete"
+                      title="Excluir"
                       onClick={() => setDeleteTarget(u)}
                     >
-                      <TrashIcon /> Delete
+                      <TrashIcon /> Excluir
                     </button>
                   </td>
                 </tr>
@@ -559,10 +533,9 @@ export function AdminUsersPage() {
           </table>
         </div>
 
-        {/* Pagination */}
         <div className="admin-pagination">
           <p className="admin-pagination__info">
-            Showing {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
+            Mostrando {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} de {filtered.length}
           </p>
           <div className="admin-pagination__btns">
             <button
@@ -570,7 +543,7 @@ export function AdminUsersPage() {
               disabled={page === 1}
               onClick={() => setPage(p => p - 1)}
             >
-              ← Prev
+              ← Anterior
             </button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
               <button
@@ -586,13 +559,12 @@ export function AdminUsersPage() {
               disabled={page === totalPages}
               onClick={() => setPage(p => p + 1)}
             >
-              Next →
+              Proxima →
             </button>
           </div>
         </div>
       </main>
 
-      {/* ── Modals ── */}
       {showForm && (
         <UserFormModal
           initial={editTarget}
@@ -608,7 +580,6 @@ export function AdminUsersPage() {
         />
       )}
 
-      {/* ── Toast ── */}
       {toast && (
         <div className="admin-toast">
           <span className="admin-toast__dot" />
