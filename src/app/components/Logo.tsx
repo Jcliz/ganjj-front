@@ -1,4 +1,4 @@
-import svgPaths from "../../imports/svg-61drw48kvb";
+import svgPaths from "../../assets/svg-61drw48kvb";
 
 interface LogoProps {
   onClick?: () => void;

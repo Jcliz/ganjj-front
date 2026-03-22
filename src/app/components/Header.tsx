@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { Logo } from "./Logo";
-import svgPaths from "../../imports/svg-61drw48kvb";
-import { navDropImg1, navDropImg2 } from "../../imports/assets";
+import svgPaths from "../../assets/svg-61drw48kvb";
+import { navDropImg1, navDropImg2 } from "../../assets/assets";
 import { CartSidebar } from "./CartSidebar";
 
 interface NavDropdownProps {

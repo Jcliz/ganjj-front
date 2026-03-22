@@ -5,18 +5,18 @@ import { Footer } from "../components/Footer";
 import {
   listProd1, listProd2, listProd3, listProd4, listProd5,
   listProd6, listProd7, listProd8, listProd9,
-} from "../../imports/assets";
+} from "../../assets/assets";
 
 const products = [
-  { id: "1", img: listProd1, name: "The Cloud Relaxed Cardigan",                 price: "$132", sale: "$132", badge: "30% off", color: "Black",            swatches: ["#1a1a1a","#1a3a6b","#5a3825"] },
-  { id: "2", img: listProd2, name: "The Organic Cotton Long-Sleeve Turtleneck",  price: "$44",  sale: "$35",  badge: "30% off", color: "Black",            tags: ["ORGANIC COTTON"] },
-  { id: "3", img: listProd3, name: "The Wool Flannel Pant",                      price: "$118", sale: "$87",  badge: "30% off", color: "Heather Charcoal", tags: ["RENEWED MATERIALS","CLEANER CHEMISTRY"] },
-  { id: "4", img: listProd4, name: "The Cloud Relaxed Cardigan",                 price: "$132", sale: "$132", badge: "30% off", color: "Black",            swatches: ["#1a1a1a","#1a3a6b","#5a3825","#000"] },
-  { id: "5", img: listProd5, name: "The Organic Cotton Long-Sleeve Turtleneck",  price: "$44",  sale: "$35",  badge: "30% off", color: "Black",            tags: ["ORGANIC COTTON"] },
-  { id: "6", img: listProd6, name: "The Wool Flannel Pant",                      price: "$118", sale: "$87",  badge: "30% off", color: "Heather Charcoal", tags: ["RENEWED MATERIALS","CLEANER CHEMISTRY"] },
-  { id: "7", img: listProd7, name: "The Cloud Relaxed Cardigan",                 price: "$132", sale: "$132", badge: "30% off", color: "Black",            swatches: ["#1a1a1a","#777","#5a3825","#c8a400"] },
-  { id: "8", img: listProd8, name: "The Organic Cotton Long-Sleeve Turtleneck",  price: "$44",  sale: "$35",  badge: "30% off", color: "Black",            tags: ["ORGANIC COTTON"] },
-  { id: "9", img: listProd9, name: "The Wool Flannel Pant",                      price: "$118", sale: "$87",  badge: "30% off", color: "Heather Charcoal", tags: ["RENEWED MATERIALS","CLEANER CHEMISTRY"] },
+  { id: "1", img: listProd1, name: "The Cloud Relaxed Cardigan", price: "$132", sale: "$132", badge: "30% off", color: "Black", swatches: ["#1a1a1a", "#1a3a6b", "#5a3825"] },
+  { id: "2", img: listProd2, name: "The Organic Cotton Long-Sleeve Turtleneck", price: "$44", sale: "$35", badge: "30% off", color: "Black", tags: ["ORGANIC COTTON"] },
+  { id: "3", img: listProd3, name: "The Wool Flannel Pant", price: "$118", sale: "$87", badge: "30% off", color: "Heather Charcoal", tags: ["RENEWED MATERIALS", "CLEANER CHEMISTRY"] },
+  { id: "4", img: listProd4, name: "The Cloud Relaxed Cardigan", price: "$132", sale: "$132", badge: "30% off", color: "Black", swatches: ["#1a1a1a", "#1a3a6b", "#5a3825", "#000"] },
+  { id: "5", img: listProd5, name: "The Organic Cotton Long-Sleeve Turtleneck", price: "$44", sale: "$35", badge: "30% off", color: "Black", tags: ["ORGANIC COTTON"] },
+  { id: "6", img: listProd6, name: "The Wool Flannel Pant", price: "$118", sale: "$87", badge: "30% off", color: "Heather Charcoal", tags: ["RENEWED MATERIALS", "CLEANER CHEMISTRY"] },
+  { id: "7", img: listProd7, name: "The Cloud Relaxed Cardigan", price: "$132", sale: "$132", badge: "30% off", color: "Black", swatches: ["#1a1a1a", "#777", "#5a3825", "#c8a400"] },
+  { id: "8", img: listProd8, name: "The Organic Cotton Long-Sleeve Turtleneck", price: "$44", sale: "$35", badge: "30% off", color: "Black", tags: ["ORGANIC COTTON"] },
+  { id: "9", img: listProd9, name: "The Wool Flannel Pant", price: "$118", sale: "$87", badge: "30% off", color: "Heather Charcoal", tags: ["RENEWED MATERIALS", "CLEANER CHEMISTRY"] },
 ];
 
 const categories = [
@@ -28,15 +28,15 @@ const categories = [
 ];
 
 const colors = [
-  { name: "Black",  hex: "#1a1a1a" },
-  { name: "Blue",   hex: "#1a3a6b" },
-  { name: "Brown",  hex: "#5a3825" },
-  { name: "Green",  hex: "#2d4a2d" },
-  { name: "Grey",   hex: "#888" },
+  { name: "Black", hex: "#1a1a1a" },
+  { name: "Blue", hex: "#1a3a6b" },
+  { name: "Brown", hex: "#5a3825" },
+  { name: "Green", hex: "#2d4a2d" },
+  { name: "Grey", hex: "#888" },
   { name: "Orange", hex: "#d46b1a" },
-  { name: "Pink",   hex: "#e8a5b0" },
-  { name: "Red",    hex: "#c0392b" },
-  { name: "Tan",    hex: "#c8a87a" },
+  { name: "Pink", hex: "#e8a5b0" },
+  { name: "Red", hex: "#c0392b" },
+  { name: "Tan", hex: "#c8a87a" },
 ];
 
 const menSubNav = [
@@ -124,13 +124,13 @@ export function ListingPage() {
             </div>
             <p style={{ fontSize: 12, color: "#737373", marginBottom: 8 }}>Waist</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 12 }}>
-              {["30","32","34","36","38","40"].map(s => (
+              {["30", "32", "34", "36", "38", "40"].map(s => (
                 <button key={s} style={{ border: "1px solid #dddbdc", padding: "4px 8px", fontSize: 12, cursor: "pointer", background: "#fff", color: "#262626" }}>{s}</button>
               ))}
             </div>
             <p style={{ fontSize: 12, color: "#737373", marginBottom: 8 }}>Clothing</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-              {["XXS","XS","S","M","L","XL","XXL","XXXL"].map(s => (
+              {["XXS", "XS", "S", "M", "L", "XL", "XXL", "XXXL"].map(s => (
                 <button key={s} style={{ border: "1px solid #dddbdc", padding: "4px 8px", fontSize: 12, cursor: "pointer", background: "#fff", color: "#262626" }}>{s}</button>
               ))}
             </div>

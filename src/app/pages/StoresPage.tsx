@@ -4,23 +4,23 @@ import {
   storeSeattle, storeSF, storePaloAlto,
   storeLa, storeBoston, storeNy,
   storeBrooklyn, storeKop, storeGeorgetown,
-} from "../../imports/assets";
+} from "../../assets/assets";
 
 const storeRows = [
   [
-    { img: storeSeattle,    city: "SEATTLE",         name: "University Village" },
-    { img: storeSF,         city: "SAN FRANCISCO",   name: "Valencia Street, San Francisco" },
-    { img: storePaloAlto,   city: "PALO ALTO",       name: "Stanford" },
+    { img: storeSeattle, city: "SEATTLE", name: "University Village" },
+    { img: storeSF, city: "SAN FRANCISCO", name: "Valencia Street, San Francisco" },
+    { img: storePaloAlto, city: "PALO ALTO", name: "Stanford" },
   ],
   [
-    { img: storeLa,         city: "LOS ANGELES",     name: "Abbot Kinney" },
-    { img: storeBoston,     city: "BOSTON",          name: "Seaport" },
-    { img: storeNy,         city: "NEW YORK",        name: "Prince Street, New York" },
+    { img: storeLa, city: "LOS ANGELES", name: "Abbot Kinney" },
+    { img: storeBoston, city: "BOSTON", name: "Seaport" },
+    { img: storeNy, city: "NEW YORK", name: "Prince Street, New York" },
   ],
   [
-    { img: storeBrooklyn,   city: "BROOKLYN",        name: "Williamsburg" },
-    { img: storeKop,        city: "KING OF PRUSSIA", name: "King of Prussia" },
-    { img: storeGeorgetown, city: "GEORGETOWN",      name: "Georgetown" },
+    { img: storeBrooklyn, city: "BROOKLYN", name: "Williamsburg" },
+    { img: storeKop, city: "KING OF PRUSSIA", name: "King of Prussia" },
+    { img: storeGeorgetown, city: "GEORGETOWN", name: "Georgetown" },
   ],
 ];
 

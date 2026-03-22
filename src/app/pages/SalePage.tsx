@@ -6,7 +6,7 @@ import {
   listProd1, listProd2, listProd3, listProd4,
   listProd5, listProd6, listProd7, listProd8, listProd9,
   catShirts, catDenim, catOuterwear, catSweaters,
-} from "../../imports/assets";
+} from "../../assets/assets";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,18 +26,18 @@ interface SaleProduct {
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
 const SALE_PRODUCTS: SaleProduct[] = [
-  { id: 1,  name: "The Air Oversized Tee",          category: "Tops",       originalPrice: 30,  salePrice: 18,  img: listProd1,   color: "White",      tag: "40% OFF" },
-  { id: 2,  name: "The Organic Cotton Crew",        category: "Tops",       originalPrice: 45,  salePrice: 27,  img: listProd2,   color: "Bone",       tag: "40% OFF" },
-  { id: 3,  name: "The Slim Jean",                  category: "Bottoms",    originalPrice: 88,  salePrice: 55,  img: listProd3,   color: "Dark Indigo", tag: "37% OFF" },
-  { id: 4,  name: "The Wide-Leg Jean",              category: "Bottoms",    originalPrice: 98,  salePrice: 59,  img: listProd4,   color: "Vintage",    tag: "40% OFF" },
-  { id: 5,  name: "The ReNew Sherpa Jacket",        category: "Outerwear",  originalPrice: 168, salePrice: 98,  img: listProd5,   color: "Camel",      tag: "41% OFF" },
-  { id: 6,  name: "The Merino Turtleneck",          category: "Knitwear",   originalPrice: 120, salePrice: 72,  img: listProd6,   color: "Heather",    tag: "40% OFF" },
-  { id: 7,  name: "The Cashmere Crewneck",          category: "Knitwear",   originalPrice: 175, salePrice: 105, img: listProd7,   color: "Cream",      tag: "40% OFF" },
-  { id: 8,  name: "The Day Market Tote",            category: "Accessories",originalPrice: 65,  salePrice: 39,  img: listProd8,   color: "Natural",    tag: "40% OFF" },
-  { id: 9,  name: "The Italian Leather Belt",       category: "Accessories",originalPrice: 55,  salePrice: 33,  img: listProd9,   color: "Black",      tag: "40% OFF" },
-  { id: 10, name: "The Oxford Button-Down",         category: "Tops",       originalPrice: 78,  salePrice: 47,  img: catShirts,   color: "Blue Stripe",tag: "39% OFF" },
-  { id: 11, name: "The Straight Leg Jean",          category: "Bottoms",    originalPrice: 98,  salePrice: 55,  img: catDenim,    color: "Slate",      tag: "43% OFF" },
-  { id: 12, name: "The ReNew Puffer Vest",          category: "Outerwear",  originalPrice: 128, salePrice: 77,  img: catOuterwear,color: "Forest",     tag: "39% OFF" },
+  { id: 1, name: "The Air Oversized Tee", category: "Tops", originalPrice: 30, salePrice: 18, img: listProd1, color: "White", tag: "40% OFF" },
+  { id: 2, name: "The Organic Cotton Crew", category: "Tops", originalPrice: 45, salePrice: 27, img: listProd2, color: "Bone", tag: "40% OFF" },
+  { id: 3, name: "The Slim Jean", category: "Bottoms", originalPrice: 88, salePrice: 55, img: listProd3, color: "Dark Indigo", tag: "37% OFF" },
+  { id: 4, name: "The Wide-Leg Jean", category: "Bottoms", originalPrice: 98, salePrice: 59, img: listProd4, color: "Vintage", tag: "40% OFF" },
+  { id: 5, name: "The ReNew Sherpa Jacket", category: "Outerwear", originalPrice: 168, salePrice: 98, img: listProd5, color: "Camel", tag: "41% OFF" },
+  { id: 6, name: "The Merino Turtleneck", category: "Knitwear", originalPrice: 120, salePrice: 72, img: listProd6, color: "Heather", tag: "40% OFF" },
+  { id: 7, name: "The Cashmere Crewneck", category: "Knitwear", originalPrice: 175, salePrice: 105, img: listProd7, color: "Cream", tag: "40% OFF" },
+  { id: 8, name: "The Day Market Tote", category: "Accessories", originalPrice: 65, salePrice: 39, img: listProd8, color: "Natural", tag: "40% OFF" },
+  { id: 9, name: "The Italian Leather Belt", category: "Accessories", originalPrice: 55, salePrice: 33, img: listProd9, color: "Black", tag: "40% OFF" },
+  { id: 10, name: "The Oxford Button-Down", category: "Tops", originalPrice: 78, salePrice: 47, img: catShirts, color: "Blue Stripe", tag: "39% OFF" },
+  { id: 11, name: "The Straight Leg Jean", category: "Bottoms", originalPrice: 98, salePrice: 55, img: catDenim, color: "Slate", tag: "43% OFF" },
+  { id: 12, name: "The ReNew Puffer Vest", category: "Outerwear", originalPrice: 128, salePrice: 77, img: catOuterwear, color: "Forest", tag: "39% OFF" },
 ];
 
 const CATEGORIES: Category[] = ["All", "Tops", "Bottoms", "Outerwear", "Knitwear", "Accessories"];
@@ -101,8 +101,8 @@ function SaleCard({ product }: { product: SaleProduct }) {
 
 export function SalePage() {
   const [activeCategory, setActiveCategory] = useState<Category>("All");
-  const [sortBy,         setSortBy]         = useState<"featured" | "price-asc" | "price-desc" | "pct">("featured");
-  const [timeLeft,       setTimeLeft]       = useState(getTimeLeft());
+  const [sortBy, setSortBy] = useState<"featured" | "price-asc" | "price-desc" | "pct">("featured");
+  const [timeLeft, setTimeLeft] = useState(getTimeLeft());
 
   useEffect(() => {
     const id = setInterval(() => setTimeLeft(getTimeLeft()), 1000);
@@ -114,10 +114,10 @@ export function SalePage() {
   );
 
   const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "price-asc")  return a.salePrice - b.salePrice;
+    if (sortBy === "price-asc") return a.salePrice - b.salePrice;
     if (sortBy === "price-desc") return b.salePrice - a.salePrice;
     if (sortBy === "pct") return (b.originalPrice - b.salePrice) / b.originalPrice
-                               - (a.originalPrice - a.salePrice) / a.originalPrice;
+      - (a.originalPrice - a.salePrice) / a.originalPrice;
     return a.id - b.id;
   });
 
@@ -153,10 +153,10 @@ export function SalePage() {
         {/* Category tiles */}
         <div className="sale-hero__tiles">
           {[
-            { label: "Tops",       img: catShirts,    cat: "Tops"      },
-            { label: "Denim",      img: catDenim,     cat: "Bottoms"   },
-            { label: "Outerwear",  img: catOuterwear, cat: "Outerwear" },
-            { label: "Knitwear",   img: catSweaters,  cat: "Knitwear"  },
+            { label: "Tops", img: catShirts, cat: "Tops" },
+            { label: "Denim", img: catDenim, cat: "Bottoms" },
+            { label: "Outerwear", img: catOuterwear, cat: "Outerwear" },
+            { label: "Knitwear", img: catSweaters, cat: "Knitwear" },
           ].map(tile => (
             <div
               key={tile.label}

@@ -3,7 +3,7 @@ import { Footer } from "../components/Footer";
 import {
   aboutHero, aboutImg1, aboutImg2, aboutImg3, aboutImg4,
   aboutScreenshot, aboutMore1, aboutMore2, aboutMore3,
-} from "../../imports/assets";
+} from "../../assets/assets";
 
 const aboutSubNav = [
   { label: "About", active: true },

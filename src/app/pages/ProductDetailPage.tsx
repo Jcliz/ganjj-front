@@ -5,7 +5,7 @@ import { Footer } from "../components/Footer";
 import {
   pdMain, pdThumb1, pdThumb2, pdThumb3, pdThumb4, pdThumb5,
   pdRec1, pdRec2, pdRec3, pdRec4,
-} from "../../imports/assets";
+} from "../../assets/assets";
 
 function StarFull({ size = 12 }: { size?: number }) {
   return (
@@ -18,16 +18,16 @@ function StarFull({ size = 12 }: { size?: number }) {
 const galleryImages = [pdMain, pdThumb1, pdThumb2, pdThumb3, pdThumb4, pdThumb5];
 
 const recommendedProducts = [
-  { img: pdRec1, name: "The OG-Fit LT-Sleeve Crew",     price: "$40" },
-  { img: pdRec2, name: "The Waffle Long-Sleeve Crew",   price: "$60" },
-  { img: pdRec3, name: "The Hoodie Relaxed Jean",        price: "$88" },
-  { img: pdRec4, name: "The Rib Long-Sleeve Tee",        price: "$60" },
+  { img: pdRec1, name: "The OG-Fit LT-Sleeve Crew", price: "$40" },
+  { img: pdRec2, name: "The Waffle Long-Sleeve Crew", price: "$60" },
+  { img: pdRec3, name: "The Hoodie Relaxed Jean", price: "$88" },
+  { img: pdRec4, name: "The Rib Long-Sleeve Tee", price: "$60" },
 ];
 
 const colorSwatches = [
   { name: "Dark Olive", hex: "#4a4a2a" },
-  { name: "Navy",       hex: "#1a1a5e" },
-  { name: "Brown",      hex: "#5a3825" },
+  { name: "Navy", hex: "#1a1a5e" },
+  { name: "Brown", hex: "#5a3825" },
 ];
 
 const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
@@ -121,7 +121,7 @@ export function ProductDetailPage() {
               <span style={{ color: "#262626", fontSize: 16, fontWeight: 600 }}>$167</span>
             </div>
             <div style={{ display: "flex", gap: 2 }}>
-              {[0,1,2,3,4].map(i => <StarFull key={i} size={12} />)}
+              {[0, 1, 2, 3, 4].map(i => <StarFull key={i} size={12} />)}
             </div>
           </div>
 
@@ -188,7 +188,7 @@ export function ProductDetailPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[
               { icon: "📦", text: "Free Shipping on orders over $100" },
-              { icon: "↩",  text: "Easy Returns — 30 day window when you sign up" },
+              { icon: "↩", text: "Easy Returns — 30 day window when you sign up" },
               { icon: "🌿", text: "Get it in 3–4 business days" },
             ].map(({ icon, text }) => (
               <div key={text} style={{ display: "flex", gap: 12, alignItems: "flex-start", fontSize: 12, color: "#262626", letterSpacing: "0.2px" }}>
@@ -239,11 +239,11 @@ export function ProductDetailPage() {
         <div style={{ display: "flex", gap: 40, marginBottom: 32, padding: "20px 0", borderTop: "1px solid #dddbdc", borderBottom: "1px solid #dddbdc" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
             <p style={{ fontSize: 32, fontWeight: 600, color: "#262626" }}>5.0</p>
-            <div style={{ display: "flex", gap: 2 }}>{[0,1,2,3,4].map(i => <StarFull key={i} size={14} />)}</div>
+            <div style={{ display: "flex", gap: 2 }}>{[0, 1, 2, 3, 4].map(i => <StarFull key={i} size={14} />)}</div>
             <p style={{ fontSize: 12, color: "#737373" }}>Overall Rating</p>
           </div>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-            {[5,4,3,2,1].map(rating => (
+            {[5, 4, 3, 2, 1].map(rating => (
               <div key={rating} style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <span style={{ fontSize: 12, color: "#737373", width: 8 }}>{rating}</span>
                 <div style={{ flex: 1, height: 4, background: "#f0f0f0", borderRadius: 2, overflow: "hidden" }}>
@@ -272,11 +272,11 @@ export function ProductDetailPage() {
         <p className="transparent-pricing__title">Transparent Pricing</p>
         <div className="pricing-breakdown">
           {[
-            { label: "Materials",  value: "$65.77" },
-            { label: "Hardware",   value: "$3.05" },
-            { label: "Labor",      value: "$26.34" },
-            { label: "Duties",     value: "$8.18" },
-            { label: "Transport",  value: "$5.67" },
+            { label: "Materials", value: "$65.77" },
+            { label: "Hardware", value: "$3.05" },
+            { label: "Labor", value: "$26.34" },
+            { label: "Duties", value: "$8.18" },
+            { label: "Transport", value: "$5.67" },
           ].map(({ label, value }) => (
             <div key={label} className="pricing-item">
               <div className="pricing-item__icon" style={{ background: "#e0e0e0", borderRadius: 4 }} />

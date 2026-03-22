@@ -11,7 +11,7 @@ import {
   editorialImg1, editorialImg2,
   ugcPhoto1, ugcPhoto2, ugcPhoto3, ugcPhoto4, ugcPhoto5,
   perkShipping, perkSustain, perkStores,
-} from "../../imports/assets";
+} from "../../assets/assets";
 
 function StarIcon() {
   return (
@@ -22,25 +22,25 @@ function StarIcon() {
 }
 
 const categoryItems = [
-  { img: catShirts,   label: "SHIRTS" },
-  { img: catDenim,    label: "DENIM" },
-  { img: catTees,     label: "TEES" },
-  { img: catPants,    label: "PANTS" },
+  { img: catShirts, label: "SHIRTS" },
+  { img: catDenim, label: "DENIM" },
+  { img: catTees, label: "TEES" },
+  { img: catPants, label: "PANTS" },
   { img: catSweaters, label: "SWEATERS" },
-  { img: catOuterwear,label: "OUTERWEAR" },
+  { img: catOuterwear, label: "OUTERWEAR" },
 ];
 
 const bannerItems = [
-  { img: bannerNewArrivals, title: "New Arrivals",          cta: "SHOP THE LATEST" },
-  { img: bannerBestSellers, title: "Best-Sellers",          cta: "SHOP YOUR FAVORITES" },
-  { img: bannerHoliday,     title: "The Holiday Outfit",    cta: "SHOP OCCASION" },
+  { img: bannerNewArrivals, title: "New Arrivals", cta: "SHOP THE LATEST" },
+  { img: bannerBestSellers, title: "Best-Sellers", cta: "SHOP YOUR FAVORITES" },
+  { img: bannerHoliday, title: "The Holiday Outfit", cta: "SHOP OCCASION" },
 ];
 
 const favoriteProducts = [
-  { img: favProduct1, name: "The Waffle Long-Sleeve Crew",                          price: "$60",  color: "Bone" },
-  { img: favProduct2, name: "The Bomber Jacket | Uniform",                          price: "$148", color: "Toasted Coconut" },
-  { img: favProduct3, name: "The Slim 4-Way Stretch Organic Jean | Uniform",        price: "$98",  color: "Dark Indigo" },
-  { img: favProduct4, name: "The Essential Organic Crew",                           price: "$30",  color: "Vintage Black" },
+  { img: favProduct1, name: "The Waffle Long-Sleeve Crew", price: "$60", color: "Bone" },
+  { img: favProduct2, name: "The Bomber Jacket | Uniform", price: "$148", color: "Toasted Coconut" },
+  { img: favProduct3, name: "The Slim 4-Way Stretch Organic Jean | Uniform", price: "$98", color: "Dark Indigo" },
+  { img: favProduct4, name: "The Essential Organic Crew", price: "$30", color: "Vintage Black" },
 ];
 
 const ugcPhotos = [ugcPhoto1, ugcPhoto2, ugcPhoto3, ugcPhoto4, ugcPhoto5];
@@ -168,7 +168,7 @@ export function LandingPage() {
             <p className="review-panel__label">People Are Talking</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
               <div className="review-panel__stars">
-                {[0,1,2,3,4].map(i => <StarIcon key={i} />)}
+                {[0, 1, 2, 3, 4].map(i => <StarIcon key={i} />)}
               </div>
               <p className="review-panel__quote">
                 "Love this shirt! Fits perfectly and the fabric is thick without being stiff."
@@ -191,7 +191,7 @@ export function LandingPage() {
         </div>
 
         <div style={{ display: "flex", gap: 12, justifyContent: "center", padding: 20 }}>
-          {[0,1,2,3].map(i => (
+          {[0, 1, 2, 3].map(i => (
             <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: i === 0 ? "#262626" : "#dddbdc" }} />
           ))}
         </div>
