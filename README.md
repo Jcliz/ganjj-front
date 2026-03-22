@@ -1,11 +1,6 @@
+  ## rodar projeto:
 
-  # Pixel Perfect React Design
+  No terminal `npm install` para instalar as dependencias.
 
-  This is a code bundle for Pixel Perfect React Design. The original project is available at https://www.figma.com/design/bkJ8c2YZTsJFvaIzx35RBu/Pixel-Perfect-React-Design.
-
-  ## Running the code
-
-  Run `npm i` to install the dependencies.
-
-  Run `npm run dev` to start the development server.
+  No terminal `npm run dev` para compilar e rodar a aplicação.
   
