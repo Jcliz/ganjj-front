@@ -1,8 +1,6 @@
 import { useState, useMemo } from "react";
 import { AdminSidebar } from "../components/AdminSidebar";
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
-
 function SearchIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -71,8 +69,6 @@ function ImageIcon() {
   );
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type Category = "Women" | "Men" | "Kids" | "Accessories";
 type ProdStatus = "Active" | "Draft" | "Archived";
 
@@ -85,13 +81,11 @@ interface Product {
   price: number;
   comparePrice: number | null;
   stock: number;
-  color: string;         // hex swatch
+  color: string;
   colorName: string;
   status: ProdStatus;
-  createdAt: string;     // ISO date
+  createdAt: string;
 }
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
 
 const SWATCH_PALETTE: Record<string, string> = {
   Uniform: "#1a1a1a",
@@ -109,18 +103,18 @@ const SWATCH_PALETTE: Record<string, string> = {
 };
 
 const INITIAL_PRODUCTS: Product[] = [
-  { id: 1, name: "The Organic Cotton Box-Cut Tee", sku: "EVR-W-TEE-001", category: "Women", description: "A relaxed box-cut tee cut from 100% organic cotton. Garment-dyed for a lived-in finish.", price: 35, comparePrice: null, stock: 142, color: "#1a1a1a", colorName: "Uniform", status: "Active", createdAt: "2024-01-10" },
-  { id: 2, name: "The Track Pant", sku: "EVR-W-PNT-002", category: "Women", description: "Tapered track pant in a premium cotton-modal blend. Elastic waistband with drawstring.", price: 68, comparePrice: null, stock: 87, color: "#f5f0e8", colorName: "Cream", status: "Active", createdAt: "2024-01-15" },
-  { id: 3, name: "The Straight Leg Jean", sku: "EVR-M-JNS-003", category: "Men", description: "A straight-leg jean in 10 oz Japanese selvedge denim. Subtle fading, five-pocket design.", price: 98, comparePrice: null, stock: 54, color: "#5c6b7a", colorName: "Slate", status: "Active", createdAt: "2024-02-01" },
-  { id: 4, name: "The Italian Leather Belt", sku: "EVR-A-BLT-004", category: "Accessories", description: "Full-grain Italian leather with a matte metal buckle. Available in 1\" width.", price: 55, comparePrice: 75, stock: 33, color: "#8b4a2f", colorName: "Cognac", status: "Active", createdAt: "2024-02-14" },
-  { id: 5, name: "The Merino Turtleneck", sku: "EVR-W-KNT-005", category: "Women", description: "A fine-gauge merino wool turtleneck. Temperature-regulating and naturally wrinkle-resistant.", price: 120, comparePrice: null, stock: 61, color: "#2e4a3a", colorName: "Forest", status: "Active", createdAt: "2024-02-20" },
-  { id: 6, name: "The ReNew Fleece Jacket", sku: "EVR-M-JKT-006", category: "Men", description: "Made from 100% recycled plastic bottles. Cozy fleece with a stand-up collar.", price: 135, comparePrice: 168, stock: 4, color: "#c49a9a", colorName: "Dusty Rose", status: "Active", createdAt: "2024-03-01" },
-  { id: 7, name: "The Kids Organic Sweatshirt", sku: "EVR-K-SWT-007", category: "Kids", description: "A classic pullover sweatshirt in 100% organic cotton fleece. Unisex fit.", price: 48, comparePrice: null, stock: 0, color: "#f5f2ec", colorName: "Ivory", status: "Draft", createdAt: "2024-03-10" },
-  { id: 8, name: "The Oxford Shirt", sku: "EVR-M-SHT-008", category: "Men", description: "A classic Oxford shirt in stonewashed GOTS-certified cotton. Slightly boxy fit.", price: 78, comparePrice: null, stock: 99, color: "#1c2d4a", colorName: "Navy", status: "Active", createdAt: "2024-03-15" },
-  { id: 9, name: "The Canvas Tote", sku: "EVR-A-BAG-009", category: "Accessories", description: "Heavyweight 18 oz canvas with reinforced stitching. Fits a 13\" laptop.", price: 35, comparePrice: null, stock: 200, color: "#c8b89a", colorName: "Sand", status: "Active", createdAt: "2024-04-01" },
-  { id: 10, name: "The Linen Shirt Dress", sku: "EVR-W-DRS-010", category: "Women", description: "A relaxed shirt dress in 100% Belgian linen. Adjustable waist tie.", price: 110, comparePrice: null, stock: 27, color: "#8a9e8a", colorName: "Sage", status: "Active", createdAt: "2024-04-08" },
-  { id: 11, name: "The Reversible Sherpa Jacket", sku: "EVR-M-JKT-011", category: "Men", description: "Sherpa fleece on one side, smooth nylon on the other. Fully reversible.", price: 198, comparePrice: 248, stock: 12, color: "#e8e2d8", colorName: "Bone", status: "Active", createdAt: "2024-04-20" },
-  { id: 12, name: "The Ribbed Tank", sku: "EVR-W-TNK-012", category: "Women", description: "A fine-rib tank in Pima cotton. Great layering piece or worn alone.", price: 28, comparePrice: null, stock: 0, color: "#262626", colorName: "Black", status: "Archived", createdAt: "2024-05-01" },
+  { id: 1,  name: "Camiseta Box-Cut de Algodão Orgânico", sku: "EVR-W-TEE-001", category: "Women", description: "Uma camiseta box-cut relaxada feita de 100% algodão orgânico. Tingida na peça para um acabamento vivido.", price: 35, comparePrice: null, stock: 142, color: "#1a1a1a", colorName: "Uniform", status: "Active", createdAt: "2024-01-10" },
+  { id: 2,  name: "Calça de Treino", sku: "EVR-W-PNT-002", category: "Women", description: "Calça de treino afinada em uma mistura premium de algodão-modal. Cintura elástica com cordão.", price: 68, comparePrice: null, stock: 87, color: "#f5f0e8", colorName: "Cream", status: "Active", createdAt: "2024-01-15" },
+  { id: 3,  name: "Calça Jeans Reta", sku: "EVR-M-JNS-003", category: "Men", description: "Uma calça jeans reta em denim selvedge japonês de 10 oz. Desbotamento sutil, design de cinco bolsos.", price: 98, comparePrice: null, stock: 54, color: "#5c6b7a", colorName: "Slate", status: "Active", createdAt: "2024-02-01" },
+  { id: 4,  name: "Cinto de Couro Italiano", sku: "EVR-A-BLT-004", category: "Accessories", description: "Couro italiano de grão cheio com uma fivela de metal fosco. Disponível em largura de 1\".", price: 55, comparePrice: 75, stock: 33, color: "#8b4a2f", colorName: "Cognac", status: "Active", createdAt: "2024-02-14" },
+  { id: 5,  name: "Turtleneck de lã Merino", sku: "EVR-W-KNT-005", category: "Women", description: "Uma turtleneck de lã merino de calibre fino. Reguladora de temperatura e naturalmente resistente a rugas.", price: 120, comparePrice: null, stock: 61, color: "#2e4a3a", colorName: "Forest", status: "Active", createdAt: "2024-02-20" },
+  { id: 6,  name: "Jaqueta de Fleece ReNew", sku: "EVR-M-JKT-006", category: "Men", description: "Feita de 100% garrafas de plástico reciclado. Fleece aconchegante com colarinho em pé.", price: 135, comparePrice: 168, stock: 4, color: "#c49a9a", colorName: "Dusty Rose", status: "Active", createdAt: "2024-03-01" },
+  { id: 7,  name: "Moletom Infantil de Algodão Orgânico", sku: "EVR-K-SWT-007", category: "Kids", description: "Um moletom clássico em fleece de algodão orgânico 100%. Corte unissex.", price: 48, comparePrice: null, stock: 0, color: "#f5f2ec", colorName: "Ivory", status: "Draft", createdAt: "2024-03-10" },
+  { id: 8,  name: "Camisa Oxford", sku: "EVR-M-SHT-008", category: "Men", description: "Uma camisa Oxford clássica em algodão certificado GOTS desbotado. Corte ligeiramente boxudo.", price: 78, comparePrice: null, stock: 99, color: "#1c2d4a", colorName: "Navy", status: "Active", createdAt: "2024-03-15" },
+  { id: 9,  name: "Bolsa de Lona", sku: "EVR-A-BAG-009", category: "Accessories", description: "Lona pesada de 18 oz com costura reforçada. Cabe um laptop de 13\".", price: 35, comparePrice: null, stock: 200, color: "#c8b89a", colorName: "Sand", status: "Active", createdAt: "2024-04-01" },
+  { id: 10, name: "Vestido-Camisa de Linho", sku: "EVR-W-DRS-010", category: "Women", description: "Um vestido-camisa relaxado em linho belga 100%. Amarração de cintura ajustável.", price: 110, comparePrice: null, stock: 27, color: "#8a9e8a", colorName: "Sage", status: "Active", createdAt: "2024-04-08" },
+  { id: 11, name: "Jaqueta Sherpa Reversível", sku: "EVR-M-JKT-011", category: "Men", description: "Fleece Sherpa de um lado, nylon liso do outro. Totalmente reversível.", price: 198, comparePrice: 248, stock: 12, color: "#e8e2d8", colorName: "Bone", status: "Active", createdAt: "2024-04-20" },
+  { id: 12, name: "Regata Canelada", sku: "EVR-W-TNK-012", category: "Women", description: "Uma regata de canelado fino em algodão Pima. Ótima peça para camadas ou usada sozinha.", price: 28, comparePrice: null, stock: 0, color: "#262626", colorName: "Black", status: "Archived", createdAt: "2024-05-01" },
 ];
 
 const CATEGORIES: Category[] = ["Women", "Men", "Kids", "Accessories"];
@@ -129,14 +123,31 @@ const COLOR_OPTIONS = Object.entries(SWATCH_PALETTE).map(([name, hex]) => ({ nam
 
 let nextProdId = INITIAL_PRODUCTS.length + 1;
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 function fmtPrice(n: number) {
   return `$${n.toFixed(2).replace(".00", "")}`;
 }
 
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleDateString("pt-BR", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function categoryLabel(category: Category) {
+  const labels: Record<Category, string> = {
+    Women:       "Feminino",
+    Men:         "Masculino",
+    Kids:        "Infantil",
+    Accessories: "Acessórios",
+  };
+  return labels[category];
+}
+
+function prodStatusLabel(status: ProdStatus) {
+  const labels: Record<ProdStatus, string> = {
+    Active:   "Ativo",
+    Draft:    "Rascunho",
+    Archived: "Arquivado",
+  };
+  return labels[status];
 }
 
 function generateSku(name: string, cat: Category, id: number) {
@@ -145,31 +156,25 @@ function generateSku(name: string, cat: Category, id: number) {
   return `EVR-${catCode[cat]}-${word}-${String(id).padStart(3, "0")}`;
 }
 
-// ─── Status badge ─────────────────────────────────────────────────────────────
-
 function StatusBadge({ status }: { status: ProdStatus }) {
   const cfg: Record<ProdStatus, { dot: string; label: string }> = {
-    Active: { dot: "#2a7a3b", label: "#2a7a3b" },
-    Draft: { dot: "#f5a623", label: "#b07a0a" },
+    Active:   { dot: "#2a7a3b", label: "#2a7a3b" },
+    Draft:    { dot: "#f5a623", label: "#b07a0a" },
     Archived: { dot: "#b0aeae", label: "#737373" },
   };
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cfg[status].label, letterSpacing: "0.4px" }}>
       <span style={{ width: 6, height: 6, borderRadius: "50%", background: cfg[status].dot, flexShrink: 0 }} />
-      {status}
+      {prodStatusLabel(status)}
     </span>
   );
 }
 
-// ─── Stock badge ──────────────────────────────────────────────────────────────
-
 function StockBadge({ stock }: { stock: number }) {
-  if (stock === 0) return <span style={{ fontSize: 11, color: "#d0021b", letterSpacing: "0.4px" }}>Out of stock</span>;
-  if (stock < 10) return <span style={{ fontSize: 11, color: "#f5a623", letterSpacing: "0.4px" }}>Low · {stock}</span>;
+  if (stock === 0) return <span style={{ fontSize: 11, color: "#d0021b", letterSpacing: "0.4px" }}>Sem estoque</span>;
+  if (stock < 10)  return <span style={{ fontSize: 11, color: "#f5a623", letterSpacing: "0.4px" }}>Estoque baixo · {stock}</span>;
   return <span style={{ fontSize: 11, color: "#262626", letterSpacing: "0.4px" }}>{stock}</span>;
 }
-
-// ─── Product thumbnail ────────────────────────────────────────────────────────
 
 function ProductThumb({ color, colorName, name }: { color: string; colorName: string; name: string }) {
   const isLight = parseInt(color.slice(1), 16) > 0xaaaaaa;
@@ -194,14 +199,12 @@ function ProductThumb({ color, colorName, name }: { color: string; colorName: st
   );
 }
 
-// ─── Form modal ───────────────────────────────────────────────────────────────
-
 interface ProdFormErrors {
   name?: string; price?: string; stock?: string; sku?: string;
 }
 
 interface ProdFormPayload {
-  name: string; sku: string; category: Category; description: string;
+  name:  string; sku: string; category: Category; description: string;
   price: number; comparePrice: number | null; stock: number;
   color: string; colorName: string; status: ProdStatus;
 }
@@ -230,12 +233,12 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
 
   function validate(): ProdFormErrors {
     const e: ProdFormErrors = {};
-    if (!name.trim()) e.name = "Product name is required.";
-    if (!sku.trim()) e.sku = "SKU is required.";
+    if (!name.trim()) e.name = "Nome do produto é obrigatório.";
+    if (!sku.trim()) e.sku = "SKU é obrigatório.";
     const p = parseFloat(price);
-    if (isNaN(p) || p < 0) e.price = "Enter a valid price.";
+    if (isNaN(p) || p < 0) e.price = "Informe um preço válido.";
     const s = parseInt(stock);
-    if (isNaN(s) || s < 0) e.stock = "Enter a valid stock quantity.";
+    if (isNaN(s) || s < 0) e.stock = "Informe uma quantidade válida.";
     return e;
   }
 
@@ -293,20 +296,17 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
   return (
     <div className="admin-modal-backdrop" onClick={onClose}>
       <div className="admin-modal" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
-        {/* Head */}
         <div className="admin-modal__head">
-          <p className="admin-modal__title">{isEdit ? "Edit Product" : "New Product"}</p>
+          <p className="admin-modal__title">{isEdit ? "Editar produto" : "Novo produto"}</p>
           <button className="admin-modal__close" onClick={onClose}><CloseIcon /></button>
         </div>
 
         <form className="admin-form" onSubmit={handleSubmit} noValidate>
-          {/* Name */}
-          {input("p-name", "PRODUCT NAME", name, setName, {
-            placeholder: "e.g. The Organic Cotton Tee",
+          {input("p-name", "NOME DO PRODUTO", name, setName, {
+            placeholder: "ex: Camiseta de algodão orgânico",
             error: errors.name,
           })}
 
-          {/* SKU */}
           {input("p-sku", "SKU", sku, setSku, {
             placeholder: "EVR-W-TEE-001",
             error: errors.sku,
@@ -316,18 +316,17 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
                 onClick={autoGenSku}
                 style={{ padding: "0 10px", height: "100%", fontSize: 10, letterSpacing: "0.6px", color: "#737373", background: "#f5f4f4", border: "none", borderLeft: "1px solid #dddbdc", cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
               >
-                AUTO
+                GERAR
               </button>
             ),
           })}
 
-          {/* Category + Status */}
           <div className="admin-form__row">
             <div className="admin-form__field">
-              <label className="admin-form__label">CATEGORY</label>
+              <label className="admin-form__label">CATEGORIA</label>
               <div className="admin-form__select-wrap" style={{ borderColor: "#dddbdc" }}>
                 <select className="admin-form__select" value={category} onChange={e => setCategory(e.target.value as Category)}>
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  {CATEGORIES.map(c => <option key={c} value={c}>{categoryLabel(c)}</option>)}
                 </select>
                 <span style={{ pointerEvents: "none", position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)" }}>
                   <ChevronIcon dir="down" />
@@ -338,7 +337,7 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
               <label className="admin-form__label">STATUS</label>
               <div className="admin-form__select-wrap" style={{ borderColor: "#dddbdc" }}>
                 <select className="admin-form__select" value={status} onChange={e => setStatus(e.target.value as ProdStatus)}>
-                  {PROD_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                  {PROD_STATUSES.map(s => <option key={s} value={s}>{prodStatusLabel(s)}</option>)}
                 </select>
                 <span style={{ pointerEvents: "none", position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)" }}>
                   <ChevronIcon dir="down" />
@@ -347,14 +346,13 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
             </div>
           </div>
 
-          {/* Description */}
           <div className="admin-form__field">
-            <label className="admin-form__label" htmlFor="p-desc">DESCRIPTION</label>
+            <label className="admin-form__label" htmlFor="p-desc">DESCRIÇÃO</label>
             <textarea
               id="p-desc"
               className="admin-form__input"
               rows={3}
-              placeholder="Short product description for the listing page…"
+              placeholder="Descrição para a página de listagem"
               value={description}
               onChange={e => setDescription(e.target.value)}
               onFocus={() => setFocused("p-desc")}
@@ -363,27 +361,24 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
             />
           </div>
 
-          {/* Price row */}
           <div className="admin-form__row">
-            {input("p-price", "PRICE ($)", price, setPrice, {
+            {input("p-price", "PREÇO ($)", price, setPrice, {
               type: "number", placeholder: "0.00", error: errors.price,
-              hint: "Regular selling price",
+              hint: "Preço de venda regular",
             })}
-            {input("p-compare", "COMPARE AT ($)", comparePrice, setComparePrice, {
+            {input("p-compare", "PREÇO DE ($)", comparePrice, setComparePrice, {
               type: "number", placeholder: "0.00",
-              hint: "Original price — leave blank if not on sale",
+              hint: "Preço original, deixe em branco se não estiver em promoção",
             })}
           </div>
 
-          {/* Stock */}
-          {input("p-stock", "STOCK QUANTITY", stock, setStock, {
+          {input("p-stock", "QUANTIDADE EM ESTOQUE", stock, setStock, {
             type: "number", placeholder: "0", error: errors.stock,
-            hint: "Set to 0 to mark as out of stock",
+            hint: "Defina como 0 para marcar sem estoque",
           })}
 
-          {/* Color swatch */}
           <div className="admin-form__field">
-            <label className="admin-form__label">COLOR</label>
+            <label className="admin-form__label">COR</label>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               {COLOR_OPTIONS.map(opt => {
                 const isLight = parseInt(opt.hex.slice(1), 16) > 0xaaaaaa;
@@ -410,11 +405,10 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="admin-modal__actions">
-            <button type="button" className="admin-btn admin-btn--ghost" onClick={onClose}>Cancel</button>
+            <button type="button" className="admin-btn admin-btn--ghost" onClick={onClose}>Cancelar</button>
             <button type="submit" className="admin-btn admin-btn--dark">
-              {isEdit ? "Save Changes" : "Add Product"}
+              {isEdit ? "Salvar alterações" : "Adicionar produto"}
             </button>
           </div>
         </form>
@@ -423,30 +417,26 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
   );
 }
 
-// ─── Delete confirm ───────────────────────────────────────────────────────────
-
 function DeleteModal({ product, onConfirm, onClose }: { product: Product; onConfirm: () => void; onClose: () => void }) {
   return (
     <div className="admin-modal-backdrop" onClick={onClose}>
       <div className="admin-modal admin-modal--sm" onClick={e => e.stopPropagation()}>
         <div className="admin-modal__head">
-          <p className="admin-modal__title">Delete Product</p>
+          <p className="admin-modal__title">Excluir produto</p>
           <button className="admin-modal__close" onClick={onClose}><CloseIcon /></button>
         </div>
         <p className="admin-delete__msg">
-          Are you sure you want to delete <strong>{product.name}</strong>?{" "}
-          This will remove it from the store permanently.
+          Tem certeza que deseja excluir <strong>{product.name}</strong>?{" "}
+          Isso removerá o produto da loja permanentemente.
         </p>
         <div className="admin-modal__actions">
-          <button className="admin-btn admin-btn--ghost" onClick={onClose}>Cancel</button>
-          <button className="admin-btn admin-btn--danger" onClick={onConfirm}>Delete</button>
+          <button className="admin-btn admin-btn--ghost" onClick={onClose}>Cancelar</button>
+          <button className="admin-btn admin-btn--danger" onClick={onConfirm}>Excluir</button>
         </div>
       </div>
     </div>
   );
 }
-
-// ─── Main page ────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 7;
 
@@ -502,7 +492,7 @@ export function AdminProductsPage() {
     const np: Product = { ...data, id: nextProdId++, createdAt: new Date().toISOString().slice(0, 10) };
     setProducts(prev => [np, ...prev]);
     setShowForm(false);
-    showToast("Product added successfully.");
+    showToast("Produto adicionado com sucesso.");
     setPage(1);
   }
 
@@ -510,13 +500,13 @@ export function AdminProductsPage() {
     setProducts(prev => prev.map(p => p.id === editTarget!.id ? { ...p, ...data } : p));
     setEditTarget(null);
     setShowForm(false);
-    showToast("Product updated.");
+    showToast("Produto atualizado.");
   }
 
   function handleDelete() {
     setProducts(prev => prev.filter(p => p.id !== deleteTarget!.id));
     setDeleteTarget(null);
-    showToast("Product deleted.");
+    showToast("Produto excluído.");
     if (paginated.length === 1 && page > 1) setPage(p => p - 1);
   }
 
@@ -546,30 +536,28 @@ export function AdminProductsPage() {
       <AdminSidebar activeItem="products" />
 
       <main className="admin-main">
-        {/* Top bar */}
         <div className="admin-topbar">
           <div>
-            <p className="admin-topbar__title">Product Catalog</p>
-            <p className="admin-topbar__sub">{products.length} items · {activeCount} active · {draftCount} drafts</p>
+            <p className="admin-topbar__title">Catálogo de produtos</p>
+            <p className="admin-topbar__sub">{products.length} itens · {activeCount} ativos · {draftCount} rascunhos</p>
           </div>
           <button
             className="admin-btn admin-btn--dark admin-btn--icon"
             onClick={() => { setEditTarget(null); setShowForm(true); }}
           >
             <PlusIcon />
-            Add Product
+            Adicionar produto
           </button>
         </div>
 
-        {/* Stats */}
         <div className="admin-stats">
           {[
-            { label: "Total Items", value: products.length },
-            { label: "Active", value: activeCount },
-            { label: "Drafts", value: draftCount },
-            { label: "Archived", value: products.filter(p => p.status === "Archived").length },
-            { label: "On Sale", value: onSaleCount },
-            { label: "Out of Stock", value: outOfStock },
+            { label: "Total de itens", value: products.length },
+            { label: "Ativos", value: activeCount },
+            { label: "Rascunhos", value: draftCount },
+            { label: "Arquivados", value: products.filter(p => p.status === "Archived").length },
+            { label: "Em promoção", value: onSaleCount },
+            { label: "Sem estoque", value: outOfStock },
           ].map(s => (
             <div key={s.label} className="admin-stat">
               <p className="admin-stat__value">{s.value}</p>
@@ -578,13 +566,12 @@ export function AdminProductsPage() {
           ))}
         </div>
 
-        {/* Toolbar */}
         <div className="admin-toolbar">
           <div className="admin-search">
             <span className="admin-search__icon"><SearchIcon /></span>
             <input
               className="admin-search__input"
-              placeholder="Search by name, SKU or color…"
+              placeholder="Buscar por nome, SKU ou cor..."
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1); }}
             />
@@ -593,65 +580,60 @@ export function AdminProductsPage() {
           <div className="admin-filters">
             <div className="admin-filter-select-wrap">
               <select className="admin-filter-select" value={catFilter} onChange={e => { setCatFilter(e.target.value as Category | "All"); setPage(1); }}>
-                <option value="All">All Categories</option>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                <option value="All">Todas as categorias</option>
+                {CATEGORIES.map(c => <option key={c} value={c}>{categoryLabel(c)}</option>)}
               </select>
               <span className="admin-filter-chevron"><ChevronIcon dir="down" /></span>
             </div>
             <div className="admin-filter-select-wrap">
               <select className="admin-filter-select" value={statusFilter} onChange={e => { setStatusFilter(e.target.value as ProdStatus | "All"); setPage(1); }}>
-                <option value="All">All Statuses</option>
-                {PROD_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                <option value="All">Todos os status</option>
+                {PROD_STATUSES.map(s => <option key={s} value={s}>{prodStatusLabel(s)}</option>)}
               </select>
               <span className="admin-filter-chevron"><ChevronIcon dir="down" /></span>
             </div>
             {(search || catFilter !== "All" || statusFilter !== "All") && (
               <button className="admin-btn admin-btn--ghost" onClick={() => { setSearch(""); setCatFilter("All"); setStatusFilter("All"); setPage(1); }}>
-                Clear
+                Limpar
               </button>
             )}
           </div>
         </div>
 
-        {/* Table */}
         <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
               <tr>
-                <SortTh col="name" label="Product" />
+                <SortTh col="name" label="Produto" />
                 <th className="admin-table__th">SKU</th>
-                <th className="admin-table__th">Category</th>
-                <SortTh col="price" label="Price" right />
-                <SortTh col="stock" label="Stock" right />
+                <th className="admin-table__th">Categoria</th>
+                <SortTh col="price" label="Preço" right />
+                <SortTh col="stock" label="Estoque" right />
                 <th className="admin-table__th">Status</th>
-                <SortTh col="createdAt" label="Added" />
-                <th className="admin-table__th admin-table__th--actions">Actions</th>
+                <SortTh col="createdAt" label="Adicionado" />
+                <th className="admin-table__th admin-table__th--actions">Ações</th>
               </tr>
             </thead>
             <tbody>
               {paginated.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="admin-table__empty">
-                    No products match your filters.
+                    Nenhum produto corresponde aos filtros.
                   </td>
                 </tr>
               ) : paginated.map(p => (
                 <tr key={p.id} className="admin-table__row">
-                  {/* Product */}
                   <td className="admin-table__td">
                     <ProductThumb color={p.color} colorName={p.colorName} name={p.name} />
                   </td>
-                  {/* SKU */}
                   <td className="admin-table__td admin-table__td--muted" style={{ fontSize: 11, letterSpacing: "0.4px" }}>
                     {p.sku}
                   </td>
-                  {/* Category */}
                   <td className="admin-table__td">
                     <span style={{ fontSize: 11, letterSpacing: "0.6px", color: "#737373", textTransform: "uppercase" }}>
-                      {p.category}
+                      {categoryLabel(p.category)}
                     </span>
                   </td>
-                  {/* Price */}
                   <td className="admin-table__td" style={{ textAlign: "right" }}>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
                       <span style={{ fontSize: 13, color: "#262626" }}>{fmtPrice(p.price)}</span>
@@ -662,27 +644,23 @@ export function AdminProductsPage() {
                       )}
                     </div>
                   </td>
-                  {/* Stock */}
                   <td className="admin-table__td" style={{ textAlign: "right" }}>
                     <StockBadge stock={p.stock} />
                   </td>
-                  {/* Status */}
                   <td className="admin-table__td"><StatusBadge status={p.status} /></td>
-                  {/* Added */}
                   <td className="admin-table__td admin-table__td--muted">{fmtDate(p.createdAt)}</td>
-                  {/* Actions */}
                   <td className="admin-table__td admin-table__td--actions">
                     <button
                       className="admin-action-btn"
                       onClick={() => { setEditTarget(p); setShowForm(true); }}
                     >
-                      <EditIcon /> Edit
+                      <EditIcon /> Editar
                     </button>
                     <button
                       className="admin-action-btn admin-action-btn--danger"
                       onClick={() => setDeleteTarget(p)}
                     >
-                      <TrashIcon /> Delete
+                      <TrashIcon /> Excluir
                     </button>
                   </td>
                 </tr>
@@ -691,13 +669,12 @@ export function AdminProductsPage() {
           </table>
         </div>
 
-        {/* Pagination */}
         <div className="admin-pagination">
           <p className="admin-pagination__info">
-            Showing {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
+            Mostrando {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} de {filtered.length}
           </p>
           <div className="admin-pagination__btns">
-            <button className="admin-pagination__btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>← Prev</button>
+            <button className="admin-pagination__btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>← Anterior</button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
               <button
                 key={n}
@@ -707,12 +684,11 @@ export function AdminProductsPage() {
                 {n}
               </button>
             ))}
-            <button className="admin-pagination__btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Next →</button>
+            <button className="admin-pagination__btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Próxima →</button>
           </div>
         </div>
       </main>
 
-      {/* Modals */}
       {showForm && (
         <ProductFormModal
           initial={editTarget}
@@ -728,7 +704,6 @@ export function AdminProductsPage() {
         />
       )}
 
-      {/* Toast */}
       {toast && (
         <div className="admin-toast">
           <span className="admin-toast__dot" />
