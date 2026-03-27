@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { AdminSidebar } from "../components/AdminSidebar";
 
@@ -68,7 +68,7 @@ function UserPlusIcon() {
   );
 }
 
-type Role   = "Admin" | "Editor" | "Customer";
+type Role = "Admin" | "Customer";
 type Status = "Active" | "Inactive";
 
 interface User {
@@ -78,26 +78,113 @@ interface User {
   email: string;
   role: Role;
   status: Status;
-  joined: string;  
+  joined: string;
 }
 
-const INITIAL_USERS: User[] = [
-  { id: 1,  firstName: "Amelia",   lastName: "Chen",      email: "amelia.chen@everlane.com",    role: "Admin",    status: "Active",   joined: "2022-03-12" },
-  { id: 2,  firstName: "Marcus",   lastName: "Rivera",    email: "m.rivera@everlane.com",       role: "Editor",   status: "Active",   joined: "2022-07-04" },
-  { id: 3,  firstName: "Sophie",   lastName: "Nguyen",    email: "sophie.n@everlane.com",       role: "Customer", status: "Active",   joined: "2023-01-19" },
-  { id: 4,  firstName: "Jordan",   lastName: "Kim",       email: "j.kim@everlane.com",          role: "Editor",   status: "Inactive", joined: "2022-11-30" },
-  { id: 5,  firstName: "Priya",    lastName: "Patel",     email: "priya.patel@everlane.com",    role: "Customer", status: "Active",   joined: "2023-05-08" },
-  { id: 6,  firstName: "Ethan",    lastName: "Brooks",    email: "e.brooks@everlane.com",       role: "Customer", status: "Active",   joined: "2023-09-14" },
-  { id: 7,  firstName: "Isabelle", lastName: "Moreau",    email: "i.moreau@everlane.com",       role: "Admin",    status: "Active",   joined: "2021-06-22" },
-  { id: 8,  firstName: "Devon",    lastName: "Walsh",     email: "d.walsh@everlane.com",        role: "Customer", status: "Inactive", joined: "2024-02-01" },
-  { id: 9,  firstName: "Nadia",    lastName: "Okonkwo",   email: "n.okonkwo@everlane.com",      role: "Editor",   status: "Active",   joined: "2023-12-11" },
-  { id: 10, firstName: "Lucas",    lastName: "Hartmann",  email: "l.hartmann@everlane.com",     role: "Customer", status: "Active",   joined: "2024-04-27" },
-];
+type UserPayload = Omit<User, "id" | "joined">;
 
-const ROLES: Role[]     = ["Admin", "Editor", "Customer"];
+const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ||
+  "http://localhost:3000";
+const USERS_ENDPOINT = `${API_BASE_URL}/api/clientes`;
+
+const ROLES: Role[] = ["Admin", "Customer"];
 const STATUSES: Status[] = ["Active", "Inactive"];
 
-let nextId = INITIAL_USERS.length + 1;
+function normalizeRole(rawRole: unknown): Role {
+  if (rawRole === "Admin") return "Admin";
+  if (rawRole === true) return "Admin";
+  return "Customer";
+}
+
+function normalizeStatus(rawStatus: unknown): Status {
+  if (rawStatus === "Active") return "Active";
+  if (rawStatus === "Inactive") return "Inactive";
+  if (rawStatus === true) return "Active";
+  return "Inactive";
+}
+
+function parseApiUser(raw: any): User {
+  return {
+    id: Number(raw.id),
+    firstName: String(raw.firstName ?? ""),
+    lastName: String(raw.lastName ?? ""),
+    email: String(raw.email ?? ""),
+    role: normalizeRole(raw.role),
+    status: normalizeStatus(raw.status),
+    joined: String(raw.joined ?? new Date().toISOString()),
+  };
+}
+
+async function readResponseBody(response: Response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+async function getErrorMessage(response: Response, fallback: string) {
+  const body = await readResponseBody(response);
+  if (body && typeof body.error === "string") {
+    return body.error;
+  }
+  return fallback;
+}
+
+async function loadUsersFromApi(): Promise<User[]> {
+  const response = await fetch(USERS_ENDPOINT);
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Falha ao carregar usuários."));
+  }
+
+  const body = await readResponseBody(response);
+  if (!Array.isArray(body)) {
+    return [];
+  }
+
+  return body.map(parseApiUser);
+}
+
+async function createUserInApi(payload: UserPayload): Promise<User> {
+  const response = await fetch(USERS_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Falha ao criar usuário."));
+  }
+
+  const body = await readResponseBody(response);
+  return parseApiUser(body || {});
+}
+
+async function updateUserInApi(id: number, payload: UserPayload): Promise<User> {
+  const response = await fetch(`${USERS_ENDPOINT}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Falha ao atualizar usuário."));
+  }
+
+  const body = await readResponseBody(response);
+  return parseApiUser(body || {});
+}
+
+async function deleteUserInApi(id: number): Promise<void> {
+  const response = await fetch(`${USERS_ENDPOINT}/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Falha ao excluir usuário."));
+  }
+}
 
 function initials(u: User) {
   return (u.firstName[0] + u.lastName[0]).toUpperCase();
@@ -115,7 +202,6 @@ function fmtDate(iso: string) {
 function roleLabel(role: Role) {
   const labels: Record<Role, string> = {
     Admin: "Administrador",
-    Editor: "Editor",
     Customer: "Cliente",
   };
   return labels[role];
@@ -131,8 +217,7 @@ function statusLabel(status: Status) {
 
 function RoleBadge({ role }: { role: Role }) {
   const styles: Record<Role, React.CSSProperties> = {
-    Admin:    { background: "#1a1a1a", color: "#fff" },
-    Editor:   { background: "#f5f4f4", color: "#262626", border: "1px solid #dddbdc" },
+    Admin: { background: "#1a1a1a", color: "#fff" },
     Customer: { background: "#f5f4f4", color: "#737373", border: "1px solid #dddbdc" },
   };
   return (
@@ -174,17 +259,17 @@ interface UserFormProps {
 function UserFormModal({ initial, onSave, onClose }: UserFormProps) {
   const isEdit = !!initial;
   const [firstName, setFirstName] = useState(initial?.firstName ?? "");
-  const [lastName,  setLastName]  = useState(initial?.lastName  ?? "");
-  const [email,     setEmail]     = useState(initial?.email     ?? "");
-  const [role,      setRole]      = useState<Role>(initial?.role ?? "Customer");
-  const [status,    setStatus]    = useState<Status>(initial?.status ?? "Active");
-  const [errors,    setErrors]    = useState<FormErrors>({});
-  const [focused,   setFocused]   = useState<string | null>(null);
+  const [lastName, setLastName] = useState(initial?.lastName ?? "");
+  const [email, setEmail] = useState(initial?.email ?? "");
+  const [role, setRole] = useState<Role>(initial?.role ?? "Customer");
+  const [status, setStatus] = useState<Status>(initial?.status ?? "Active");
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [focused, setFocused] = useState<string | null>(null);
 
   function validate() {
     const e: FormErrors = {};
     if (!firstName.trim()) e.firstName = "Campo obrigatorio.";
-    if (!lastName.trim())  e.lastName  = "Campo obrigatorio.";
+    if (!lastName.trim()) e.lastName = "Campo obrigatorio.";
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = "Informe um e-mail valido.";
     return e;
   }
@@ -231,7 +316,7 @@ function UserFormModal({ initial, onSave, onClose }: UserFormProps) {
 
           <div className="admin-form__row">
             {field("adm-fn", "NOME", firstName, setFirstName, "text", errors.firstName)}
-            {field("adm-ln", "SOBRENOME",  lastName,  setLastName,  "text", errors.lastName)}
+            {field("adm-ln", "SOBRENOME", lastName, setLastName, "text", errors.lastName)}
           </div>
           {field("adm-em", "ENDERECO DE E-MAIL", email, setEmail, "email", errors.email)}
 
@@ -309,22 +394,41 @@ const PAGE_SIZE = 6;
 
 export function AdminUsersPage() {
   useNavigate();
-  const [users,        setUsers]        = useState<User[]>(INITIAL_USERS);
-  const [search,       setSearch]       = useState("");
-  const [roleFilter,   setRoleFilter]   = useState<Role | "All">("All");
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<Role | "All">("All");
   const [statusFilter, setStatusFilter] = useState<Status | "All">("All");
-  const [sortBy,       setSortBy]       = useState<"name" | "joined" | "role">("joined");
-  const [sortDir,      setSortDir]      = useState<"asc" | "desc">("desc");
-  const [page,         setPage]         = useState(1);
-  const [showForm,     setShowForm]     = useState(false);
-  const [editTarget,   setEditTarget]   = useState<User | null>(null);
+  const [sortBy, setSortBy] = useState<"name" | "joined" | "role">("joined");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [page, setPage] = useState(1);
+  const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
-  const [toast,        setToast]        = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2800);
   }
+
+  async function refreshUsers() {
+    setErrorMessage(null);
+    try {
+      const loadedUsers = await loadUsersFromApi();
+      setUsers(loadedUsers);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Erro ao carregar usuários.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    refreshUsers();
+  }, []);
 
   const filtered = useMemo(() => {
     let list = users.filter(u => {
@@ -333,16 +437,16 @@ export function AdminUsersPage() {
         || u.firstName.toLowerCase().includes(q)
         || u.lastName.toLowerCase().includes(q)
         || u.email.toLowerCase().includes(q);
-      const matchRole   = roleFilter   === "All" || u.role   === roleFilter;
+      const matchRole = roleFilter === "All" || u.role === roleFilter;
       const matchStatus = statusFilter === "All" || u.status === statusFilter;
       return matchSearch && matchRole && matchStatus;
     });
 
     list = [...list].sort((a, b) => {
       let cmp = 0;
-      if (sortBy === "name")   cmp = (a.firstName + a.lastName).localeCompare(b.firstName + b.lastName);
+      if (sortBy === "name") cmp = (a.firstName + a.lastName).localeCompare(b.firstName + b.lastName);
       if (sortBy === "joined") cmp = a.joined.localeCompare(b.joined);
-      if (sortBy === "role")   cmp = a.role.localeCompare(b.role);
+      if (sortBy === "role") cmp = a.role.localeCompare(b.role);
       return sortDir === "asc" ? cmp : -cmp;
     });
 
@@ -350,7 +454,7 @@ export function AdminUsersPage() {
   }, [users, search, roleFilter, statusFilter, sortBy, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   function handleSort(col: "name" | "joined" | "role") {
     if (sortBy === col) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -358,25 +462,53 @@ export function AdminUsersPage() {
     setPage(1);
   }
 
-  function handleCreate(data: Omit<User, "id" | "joined">) {
-    const newUser: User = { ...data, id: nextId++, joined: new Date().toISOString().slice(0, 10) };
-    setUsers(prev => [newUser, ...prev]);
-    setShowForm(false);
-    showToast("usuário criado com sucesso.");
-    setPage(1);
+  async function handleCreate(data: Omit<User, "id" | "joined">) {
+    setIsSaving(true);
+    try {
+      const newUser = await createUserInApi(data);
+      setUsers(prev => [newUser, ...prev]);
+      setShowForm(false);
+      showToast("usuário criado com sucesso.");
+      setPage(1);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Erro ao criar usuário.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  function handleEdit(data: Omit<User, "id" | "joined">) {
-    setUsers(prev => prev.map(u => u.id === editTarget!.id ? { ...u, ...data } : u));
-    setEditTarget(null);
-    showToast("usuário atualizado com sucesso.");
+  async function handleEdit(data: Omit<User, "id" | "joined">) {
+    if (!editTarget) return;
+
+    setIsSaving(true);
+    try {
+      const updatedUser = await updateUserInApi(editTarget.id, data);
+      setUsers(prev => prev.map(u => u.id === editTarget.id ? updatedUser : u));
+      setEditTarget(null);
+      setShowForm(false);
+      showToast("Usuário atualizado com sucesso.");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Erro ao atualizar usuário.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  function handleDelete() {
-    setUsers(prev => prev.filter(u => u.id !== deleteTarget!.id));
-    setDeleteTarget(null);
-    showToast("usuário excluido.");
-    if (paginated.length === 1 && page > 1) setPage(p => p - 1);
+  async function handleDelete() {
+    if (!deleteTarget) return;
+
+    setIsSaving(true);
+    try {
+      await deleteUserInApi(deleteTarget.id);
+      setUsers(prev => prev.filter(u => u.id !== deleteTarget.id));
+      setDeleteTarget(null);
+      showToast("Usuário excluído com sucesso.");
+      if (paginated.length === 1 && page > 1) setPage(p => p - 1);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Erro ao excluir usuário.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function SortTh({ col, label }: { col: "name" | "joined" | "role"; label: string }) {
@@ -395,8 +527,8 @@ export function AdminUsersPage() {
     );
   }
 
-  const activeCount   = users.filter(u => u.status === "Active").length;
-  const adminCount    = users.filter(u => u.role === "Admin").length;
+  const activeCount = users.filter(u => u.status === "Active").length;
+  const adminCount = users.filter(u => u.role === "Admin").length;
 
   return (
     <div className="admin-page">
@@ -408,20 +540,36 @@ export function AdminUsersPage() {
             <p className="admin-topbar__title">Gestão de usuários</p>
             <p className="admin-topbar__sub">{users.length} total · {activeCount} ativos · {adminCount} administradores</p>
           </div>
-          <button className="admin-btn admin-btn--dark admin-btn--icon" onClick={() => { setEditTarget(null); setShowForm(true); }}>
+          <button
+            className="admin-btn admin-btn--dark admin-btn--icon"
+            onClick={() => { setEditTarget(null); setShowForm(true); }}
+            disabled={isSaving}
+          >
             <UserPlusIcon />
             Novo usuário
           </button>
         </div>
 
+        {errorMessage && (
+          <div style={{
+            border: "1px solid #f3c2c9",
+            background: "#fff4f6",
+            color: "#8a1c2a",
+            padding: "10px 12px",
+            marginBottom: 16,
+            fontSize: 13,
+          }}>
+            {errorMessage}
+          </div>
+        )}
+
         <div className="admin-stats">
           {[
             { label: "Total de usuários", value: users.length },
-            { label: "Ativos",            value: users.filter(u => u.status === "Active").length },
-            { label: "Administradores",   value: users.filter(u => u.role === "Admin").length },
-            { label: "Editores",          value: users.filter(u => u.role === "Editor").length },
-            { label: "Clientes",          value: users.filter(u => u.role === "Customer").length },
-            { label: "Inativos",          value: users.filter(u => u.status === "Inactive").length },
+            { label: "Ativos", value: users.filter(u => u.status === "Active").length },
+            { label: "Administradores", value: users.filter(u => u.role === "Admin").length },
+            { label: "Clientes", value: users.filter(u => u.role === "Customer").length },
+            { label: "Inativos", value: users.filter(u => u.status === "Inactive").length },
           ].map(s => (
             <div key={s.label} className="admin-stat">
               <p className="admin-stat__value">{s.value}</p>
@@ -482,16 +630,22 @@ export function AdminUsersPage() {
           <table className="admin-table">
             <thead>
               <tr>
-                <SortTh col="name"   label="usuário" />
+                <SortTh col="name" label="usuário" />
                 <th className="admin-table__th">E-mail</th>
-                <SortTh col="role"   label="Função" />
+                <SortTh col="role" label="Função" />
                 <th className="admin-table__th">Status</th>
                 <SortTh col="joined" label="Entrada" />
                 <th className="admin-table__th admin-table__th--actions">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {paginated.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="admin-table__empty">
+                    Carregando usuários...
+                  </td>
+                </tr>
+              ) : paginated.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="admin-table__empty">
                     Nenhum usuário corresponde aos filtros.
@@ -516,6 +670,7 @@ export function AdminUsersPage() {
                       className="admin-action-btn"
                       title="Editar"
                       onClick={() => { setEditTarget(u); setShowForm(true); }}
+                      disabled={isSaving}
                     >
                       <EditIcon /> Editar
                     </button>
@@ -523,6 +678,7 @@ export function AdminUsersPage() {
                       className="admin-action-btn admin-action-btn--danger"
                       title="Excluir"
                       onClick={() => setDeleteTarget(u)}
+                      disabled={isSaving}
                     >
                       <TrashIcon /> Excluir
                     </button>
