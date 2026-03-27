@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdminSidebar } from "../components/AdminSidebar";
 
 function SearchIcon() {
@@ -69,8 +69,8 @@ function ImageIcon() {
   );
 }
 
-type Category = "Women" | "Men" | "Kids" | "Accessories";
-type ProdStatus = "Active" | "Draft" | "Archived";
+type Category = "Women" | "Men";
+type ProdStatus = "Active" | "Inactive";
 
 interface Product {
   id: number;
@@ -87,6 +87,13 @@ interface Product {
   createdAt: string;
 }
 
+type ProductPayload = Omit<Product, "id" | "createdAt">;
+
+const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ||
+  "http://localhost:3000";
+const PRODUCTS_ENDPOINT = `${API_BASE_URL}/api/produtos`;
+
 const SWATCH_PALETTE: Record<string, string> = {
   Uniform: "#1a1a1a",
   "Cream": "#f5f0e8",
@@ -102,26 +109,122 @@ const SWATCH_PALETTE: Record<string, string> = {
   "Black": "#262626",
 };
 
-const INITIAL_PRODUCTS: Product[] = [
-  { id: 1,  name: "Camiseta Box-Cut de Algodão Orgânico", sku: "EVR-W-TEE-001", category: "Women", description: "Uma camiseta box-cut relaxada feita de 100% algodão orgânico. Tingida na peça para um acabamento vivido.", price: 35, comparePrice: null, stock: 142, color: "#1a1a1a", colorName: "Uniform", status: "Active", createdAt: "2024-01-10" },
-  { id: 2,  name: "Calça de Treino", sku: "EVR-W-PNT-002", category: "Women", description: "Calça de treino afinada em uma mistura premium de algodão-modal. Cintura elástica com cordão.", price: 68, comparePrice: null, stock: 87, color: "#f5f0e8", colorName: "Cream", status: "Active", createdAt: "2024-01-15" },
-  { id: 3,  name: "Calça Jeans Reta", sku: "EVR-M-JNS-003", category: "Men", description: "Uma calça jeans reta em denim selvedge japonês de 10 oz. Desbotamento sutil, design de cinco bolsos.", price: 98, comparePrice: null, stock: 54, color: "#5c6b7a", colorName: "Slate", status: "Active", createdAt: "2024-02-01" },
-  { id: 4,  name: "Cinto de Couro Italiano", sku: "EVR-A-BLT-004", category: "Accessories", description: "Couro italiano de grão cheio com uma fivela de metal fosco. Disponível em largura de 1\".", price: 55, comparePrice: 75, stock: 33, color: "#8b4a2f", colorName: "Cognac", status: "Active", createdAt: "2024-02-14" },
-  { id: 5,  name: "Turtleneck de lã Merino", sku: "EVR-W-KNT-005", category: "Women", description: "Uma turtleneck de lã merino de calibre fino. Reguladora de temperatura e naturalmente resistente a rugas.", price: 120, comparePrice: null, stock: 61, color: "#2e4a3a", colorName: "Forest", status: "Active", createdAt: "2024-02-20" },
-  { id: 6,  name: "Jaqueta de Fleece ReNew", sku: "EVR-M-JKT-006", category: "Men", description: "Feita de 100% garrafas de plástico reciclado. Fleece aconchegante com colarinho em pé.", price: 135, comparePrice: 168, stock: 4, color: "#c49a9a", colorName: "Dusty Rose", status: "Active", createdAt: "2024-03-01" },
-  { id: 7,  name: "Moletom Infantil de Algodão Orgânico", sku: "EVR-K-SWT-007", category: "Kids", description: "Um moletom clássico em fleece de algodão orgânico 100%. Corte unissex.", price: 48, comparePrice: null, stock: 0, color: "#f5f2ec", colorName: "Ivory", status: "Draft", createdAt: "2024-03-10" },
-  { id: 8,  name: "Camisa Oxford", sku: "EVR-M-SHT-008", category: "Men", description: "Uma camisa Oxford clássica em algodão certificado GOTS desbotado. Corte ligeiramente boxudo.", price: 78, comparePrice: null, stock: 99, color: "#1c2d4a", colorName: "Navy", status: "Active", createdAt: "2024-03-15" },
-  { id: 9,  name: "Bolsa de Lona", sku: "EVR-A-BAG-009", category: "Accessories", description: "Lona pesada de 18 oz com costura reforçada. Cabe um laptop de 13\".", price: 35, comparePrice: null, stock: 200, color: "#c8b89a", colorName: "Sand", status: "Active", createdAt: "2024-04-01" },
-  { id: 10, name: "Vestido-Camisa de Linho", sku: "EVR-W-DRS-010", category: "Women", description: "Um vestido-camisa relaxado em linho belga 100%. Amarração de cintura ajustável.", price: 110, comparePrice: null, stock: 27, color: "#8a9e8a", colorName: "Sage", status: "Active", createdAt: "2024-04-08" },
-  { id: 11, name: "Jaqueta Sherpa Reversível", sku: "EVR-M-JKT-011", category: "Men", description: "Fleece Sherpa de um lado, nylon liso do outro. Totalmente reversível.", price: 198, comparePrice: 248, stock: 12, color: "#e8e2d8", colorName: "Bone", status: "Active", createdAt: "2024-04-20" },
-  { id: 12, name: "Regata Canelada", sku: "EVR-W-TNK-012", category: "Women", description: "Uma regata de canelado fino em algodão Pima. Ótima peça para camadas ou usada sozinha.", price: 28, comparePrice: null, stock: 0, color: "#262626", colorName: "Black", status: "Archived", createdAt: "2024-05-01" },
-];
-
-const CATEGORIES: Category[] = ["Women", "Men", "Kids", "Accessories"];
-const PROD_STATUSES: ProdStatus[] = ["Active", "Draft", "Archived"];
+const CATEGORIES: Category[] = ["Women", "Men"];
+const PROD_STATUSES: ProdStatus[] = ["Active", "Inactive"];
 const COLOR_OPTIONS = Object.entries(SWATCH_PALETTE).map(([name, hex]) => ({ name, hex }));
 
-let nextProdId = INITIAL_PRODUCTS.length + 1;
+function hexToColorName(hex?: string | null) {
+  if (!hex) return "Black";
+  const found = Object.entries(SWATCH_PALETTE).find(([, paletteHex]) => paletteHex.toLowerCase() === hex.toLowerCase());
+  return found ? found[0] : "Black";
+}
+
+function boolToStatus(value: unknown): ProdStatus {
+  if (value === true || value === "Active") return "Active";
+  return "Inactive";
+}
+
+function parseApiProduct(raw: any): Product {
+  const category: Category = raw.feminino ? "Women" : "Men";
+  return {
+    id: Number(raw.id),
+    name: String(raw.nome ?? ""),
+    sku: generateSku(String(raw.nome ?? "PRD"), category, Number(raw.id ?? 0)),
+    category,
+    description: String(raw.descricao ?? ""),
+    price: Number(raw.preco ?? 0),
+    comparePrice: null,
+    stock: Number(raw.estoque ?? 0),
+    color: String(raw.cor ?? "#262626"),
+    colorName: hexToColorName(raw.cor),
+    status: boolToStatus(raw.status),
+    createdAt: String(raw.criado_em ?? new Date().toISOString()),
+  };
+}
+
+function mapPayloadToApi(payload: ProductPayload) {
+  return {
+    nome: payload.name,
+    descricao: payload.description,
+    preco: payload.price,
+    estoque: payload.stock,
+    cor: payload.color,
+    status: payload.status === "Active",
+    feminino: payload.category === "Women",
+    popular: payload.comparePrice != null,
+    imagem_url: null,
+  };
+}
+
+async function readResponseBody(response: Response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+async function getErrorMessage(response: Response, fallback: string) {
+  const body = await readResponseBody(response);
+  if (body && typeof body.error === "string") {
+    return body.error;
+  }
+  return fallback;
+}
+
+async function loadProductsFromApi() {
+  const response = await fetch(PRODUCTS_ENDPOINT);
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Falha ao carregar produtos."));
+  }
+
+  const body = await readResponseBody(response);
+  if (!Array.isArray(body)) {
+    return [] as Product[];
+  }
+
+  return body.map(parseApiProduct);
+}
+
+async function createProductInApi(payload: ProductPayload) {
+  const response = await fetch(PRODUCTS_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(mapPayloadToApi(payload)),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Falha ao criar produto."));
+  }
+
+  const body = await readResponseBody(response);
+  return parseApiProduct(body || {});
+}
+
+async function updateProductInApi(id: number, payload: ProductPayload) {
+  const response = await fetch(`${PRODUCTS_ENDPOINT}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(mapPayloadToApi(payload)),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Falha ao atualizar produto."));
+  }
+
+  const body = await readResponseBody(response);
+  return parseApiProduct(body || {});
+}
+
+async function deleteProductInApi(id: number) {
+  const response = await fetch(`${PRODUCTS_ENDPOINT}/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Falha ao excluir produto."));
+  }
+}
 
 function fmtPrice(n: number) {
   return `$${n.toFixed(2).replace(".00", "")}`;
@@ -133,34 +236,30 @@ function fmtDate(iso: string) {
 
 function categoryLabel(category: Category) {
   const labels: Record<Category, string> = {
-    Women:       "Feminino",
-    Men:         "Masculino",
-    Kids:        "Infantil",
-    Accessories: "Acessórios",
+    Women: "Feminino",
+    Men: "Masculino",
   };
   return labels[category];
 }
 
 function prodStatusLabel(status: ProdStatus) {
   const labels: Record<ProdStatus, string> = {
-    Active:   "Ativo",
-    Draft:    "Rascunho",
-    Archived: "Arquivado",
+    Active: "Ativo",
+    Inactive: "Inativo",
   };
   return labels[status];
 }
 
 function generateSku(name: string, cat: Category, id: number) {
-  const catCode: Record<Category, string> = { Women: "W", Men: "M", Kids: "K", Accessories: "A" };
+  const catCode: Record<Category, string> = { Women: "W", Men: "M" };
   const word = name.trim().split(/\s+/).filter(Boolean)[0]?.slice(0, 3).toUpperCase() ?? "PRD";
   return `EVR-${catCode[cat]}-${word}-${String(id).padStart(3, "0")}`;
 }
 
 function StatusBadge({ status }: { status: ProdStatus }) {
   const cfg: Record<ProdStatus, { dot: string; label: string }> = {
-    Active:   { dot: "#2a7a3b", label: "#2a7a3b" },
-    Draft:    { dot: "#f5a623", label: "#b07a0a" },
-    Archived: { dot: "#b0aeae", label: "#737373" },
+    Active: { dot: "#2a7a3b", label: "#2a7a3b" },
+    Inactive: { dot: "#d0021b", label: "#d0021b" },
   };
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cfg[status].label, letterSpacing: "0.4px" }}>
@@ -172,7 +271,7 @@ function StatusBadge({ status }: { status: ProdStatus }) {
 
 function StockBadge({ stock }: { stock: number }) {
   if (stock === 0) return <span style={{ fontSize: 11, color: "#d0021b", letterSpacing: "0.4px" }}>Sem estoque</span>;
-  if (stock < 10)  return <span style={{ fontSize: 11, color: "#f5a623", letterSpacing: "0.4px" }}>Estoque baixo · {stock}</span>;
+  if (stock < 10) return <span style={{ fontSize: 11, color: "#f5a623", letterSpacing: "0.4px" }}>Estoque baixo · {stock}</span>;
   return <span style={{ fontSize: 11, color: "#262626", letterSpacing: "0.4px" }}>{stock}</span>;
 }
 
@@ -204,7 +303,7 @@ interface ProdFormErrors {
 }
 
 interface ProdFormPayload {
-  name:  string; sku: string; category: Category; description: string;
+  name: string; sku: string; category: Category; description: string;
   price: number; comparePrice: number | null; stock: number;
   color: string; colorName: string; status: ProdStatus;
 }
@@ -225,7 +324,7 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
   const [comparePrice, setComparePrice] = useState(String(initial?.comparePrice ?? ""));
   const [stock, setStock] = useState(String(initial?.stock ?? ""));
   const [colorName, setColorName] = useState(initial?.colorName ?? "Black");
-  const [status, setStatus] = useState<ProdStatus>(initial?.status ?? "Draft");
+  const [status, setStatus] = useState<ProdStatus>(initial?.status ?? "Active");
   const [errors, setErrors] = useState<ProdFormErrors>({});
   const [focused, setFocused] = useState<string | null>(null);
 
@@ -258,7 +357,7 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
   }
 
   function autoGenSku() {
-    setSku(generateSku(name, category, nextProdId));
+    setSku(generateSku(name, category, Math.floor(Math.random() * 900 + 100)));
   }
 
   function input(
@@ -441,7 +540,10 @@ function DeleteModal({ product, onConfirm, onClose }: { product: Product; onConf
 const PAGE_SIZE = 7;
 
 export function AdminProductsPage() {
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState<Category | "All">("All");
   const [statusFilter, setStatusFilter] = useState<ProdStatus | "All">("All");
@@ -457,6 +559,22 @@ export function AdminProductsPage() {
     setToast(msg);
     setTimeout(() => setToast(null), 2800);
   }
+
+  async function refreshProducts() {
+    setErrorMessage(null);
+    try {
+      const loadedProducts = await loadProductsFromApi();
+      setProducts(loadedProducts);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Erro ao carregar produtos.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    refreshProducts();
+  }, []);
 
   const filtered = useMemo(() => {
     let list = products.filter(p => {
@@ -488,26 +606,53 @@ export function AdminProductsPage() {
     setPage(1);
   }
 
-  function handleCreate(data: ProdFormPayload) {
-    const np: Product = { ...data, id: nextProdId++, createdAt: new Date().toISOString().slice(0, 10) };
-    setProducts(prev => [np, ...prev]);
-    setShowForm(false);
-    showToast("Produto adicionado com sucesso.");
-    setPage(1);
+  async function handleCreate(data: ProdFormPayload) {
+    setIsSaving(true);
+    try {
+      const created = await createProductInApi(data);
+      setProducts(prev => [created, ...prev]);
+      setShowForm(false);
+      showToast("Produto adicionado com sucesso.");
+      setPage(1);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Erro ao criar produto.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  function handleEdit(data: ProdFormPayload) {
-    setProducts(prev => prev.map(p => p.id === editTarget!.id ? { ...p, ...data } : p));
-    setEditTarget(null);
-    setShowForm(false);
-    showToast("Produto atualizado.");
+  async function handleEdit(data: ProdFormPayload) {
+    if (!editTarget) return;
+
+    setIsSaving(true);
+    try {
+      const updated = await updateProductInApi(editTarget.id, data);
+      setProducts(prev => prev.map(p => p.id === editTarget.id ? updated : p));
+      setEditTarget(null);
+      setShowForm(false);
+      showToast("Produto atualizado.");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Erro ao atualizar produto.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  function handleDelete() {
-    setProducts(prev => prev.filter(p => p.id !== deleteTarget!.id));
-    setDeleteTarget(null);
-    showToast("Produto excluído.");
-    if (paginated.length === 1 && page > 1) setPage(p => p - 1);
+  async function handleDelete() {
+    if (!deleteTarget) return;
+
+    setIsSaving(true);
+    try {
+      await deleteProductInApi(deleteTarget.id);
+      setProducts(prev => prev.filter(p => p.id !== deleteTarget.id));
+      setDeleteTarget(null);
+      showToast("Produto excluído.");
+      if (paginated.length === 1 && page > 1) setPage(p => p - 1);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Erro ao excluir produto.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function SortTh({ col, label, right }: { col: "name" | "price" | "stock" | "createdAt"; label: string; right?: boolean }) {
@@ -527,7 +672,6 @@ export function AdminProductsPage() {
   }
 
   const activeCount = products.filter(p => p.status === "Active").length;
-  const draftCount = products.filter(p => p.status === "Draft").length;
   const outOfStock = products.filter(p => p.stock === 0).length;
   const onSaleCount = products.filter(p => p.comparePrice != null).length;
 
@@ -539,23 +683,36 @@ export function AdminProductsPage() {
         <div className="admin-topbar">
           <div>
             <p className="admin-topbar__title">Catálogo de produtos</p>
-            <p className="admin-topbar__sub">{products.length} itens · {activeCount} ativos · {draftCount} rascunhos</p>
+            <p className="admin-topbar__sub">{products.length} itens · {activeCount} ativos</p>
           </div>
           <button
             className="admin-btn admin-btn--dark admin-btn--icon"
             onClick={() => { setEditTarget(null); setShowForm(true); }}
+            disabled={isSaving}
           >
             <PlusIcon />
             Adicionar produto
           </button>
         </div>
 
+        {errorMessage && (
+          <div style={{
+            border: "1px solid #f3c2c9",
+            background: "#fff4f6",
+            color: "#8a1c2a",
+            padding: "10px 12px",
+            marginBottom: 16,
+            fontSize: 13,
+          }}>
+            {errorMessage}
+          </div>
+        )}
+
         <div className="admin-stats">
           {[
             { label: "Total de itens", value: products.length },
             { label: "Ativos", value: activeCount },
-            { label: "Rascunhos", value: draftCount },
-            { label: "Arquivados", value: products.filter(p => p.status === "Archived").length },
+            { label: "Inativos", value: products.filter(p => p.status === "Inactive").length },
             { label: "Em promoção", value: onSaleCount },
             { label: "Sem estoque", value: outOfStock },
           ].map(s => (
@@ -615,7 +772,13 @@ export function AdminProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {paginated.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="admin-table__empty">
+                    Carregando produtos...
+                  </td>
+                </tr>
+              ) : paginated.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="admin-table__empty">
                     Nenhum produto corresponde aos filtros.
@@ -653,12 +816,14 @@ export function AdminProductsPage() {
                     <button
                       className="admin-action-btn"
                       onClick={() => { setEditTarget(p); setShowForm(true); }}
+                      disabled={isSaving}
                     >
                       <EditIcon /> Editar
                     </button>
                     <button
                       className="admin-action-btn admin-action-btn--danger"
                       onClick={() => setDeleteTarget(p)}
+                      disabled={isSaving}
                     >
                       <TrashIcon /> Excluir
                     </button>
