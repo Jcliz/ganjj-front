@@ -2344,7 +2344,7 @@ a {
   border: none;
   font-family: inherit;
   transition: background 0.15s;
-  margin-top: 4px;
+  margin-top: -10px;
 }
 
 .login-submit-btn:hover:not(:disabled) {

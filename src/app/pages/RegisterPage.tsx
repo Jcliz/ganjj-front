@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Logo } from "../components/Logo";
 
 function EyeIcon({ visible }: { visible: boolean }) {
   return visible ? (
@@ -98,10 +97,10 @@ function Field({
 }
 
 const STRENGTHS = [
-  { label: "Fraca",   color: "#d0021b", min: 1 },
+  { label: "Fraca",      color: "#d0021b", min: 1 },
   { label: "Moderada",   color: "#f5a623", min: 2 },
-  { label: "Boa",   color: "#7ed321", min: 3 },
-  { label: "Forte", color: "#417505", min: 4 },
+  { label: "Boa",        color: "#7ed321", min: 3 },
+  { label: "Forte",      color: "#417505", min: 4 },
 ];
 
 function passwordStrength(pw: string): number {
@@ -117,17 +116,18 @@ export function RegisterPage() {
   const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName]   = useState("");
-  const [email, setEmail]         = useState("");
-  const [password, setPassword]   = useState("");
-  const [confirm, setConfirm]     = useState("");
-  const [agreed, setAgreed]       = useState(false);
-  const [showPw, setShowPw]       = useState(false);
-  const [showCf, setShowCf]       = useState(false);
-  const [focused, setFocused]     = useState<string | null>(null);
-  const [errors, setErrors]       = useState<Record<string, string>>({});
-  const [loading, setLoading]     = useState(false);
-  const [success, setSuccess]     = useState(false);
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [showCf, setShowCf] = useState(false);
+  const [focused, setFocused] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const pwStrength = passwordStrength(password);
   const strengthInfo = STRENGTHS[Math.min(pwStrength - 1, 3)] ?? null;
@@ -135,7 +135,7 @@ export function RegisterPage() {
   function validate() {
     const e: Record<string, string> = {};
     if (!firstName.trim()) e.firstName = "Primeiro nome é necessário.";
-    if (!lastName.trim())  e.lastName  = "Sobrenome é necessário.";
+    if (!lastName.trim()) e.lastName = "Sobrenome é necessário.";
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = "Insira um endereço de email válido.";
     if (password.length < 8) e.password = "A senha deve ter pelo menos 8 caracteres.";
     if (confirm !== password) e.confirm = "As senhas não coincidem.";
@@ -146,8 +146,23 @@ export function RegisterPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs = validate();
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+
+    const allEmpty = !firstName.trim() && !lastName.trim() && !email.trim() && !password && !confirm && !agreed;
+
+    if (allEmpty) {
+      setGeneralError("Preencha todos os campos corretamente.");
+      setErrors({});
+      return;
+    }
+
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      setGeneralError("");
+      return;
+    }
+
     setErrors({});
+    setGeneralError("");
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
@@ -325,6 +340,8 @@ export function RegisterPage() {
                 </p>
               </div>
               {errors.agreed && <p className="register-field__error" style={{ marginTop: -12 }}>{errors.agreed}</p>}
+
+              {generalError && <p className="login-error">{generalError}</p>}
 
               <button
                 type="submit"
