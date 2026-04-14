@@ -2,39 +2,29 @@ import { useNavigate } from "react-router";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 
-const returnsSubNav = [
-  { label: "Returns & Exchanges", active: true, path: "/returns" },
-  { label: "Shipping Info" },
-  { label: "Help Center" },
-  { label: "Contact Us", path: "/contact" },
-];
-
 export function ReturnsPage() {
   const navigate = useNavigate();
 
   return (
     <div className="page">
-      <Header subNavItems={returnsSubNav} />
+      <Header />
 
       <main className="returns-page">
-        {/* Hero strip */}
         <div className="returns-hero">
-          <p className="returns-hero__label">CUSTOMER CARE</p>
-          <h1 className="returns-hero__title">Returns &amp; Exchanges</h1>
-          <p className="returns-hero__sub">We want you to love what you wear. If something isn't right, we'll make it right.</p>
+          <p className="returns-hero__label">CUIDADO COM O CLIENTE</p>
+          <h1 className="returns-hero__title">Devoluções e Trocas</h1>
+          <p className="returns-hero__sub">Queremos que você ame o que veste. Se algo não estiver certo, nós resolveremos.</p>
         </div>
 
-        {/* Content */}
         <div className="returns-body">
 
-          {/* Policy overview */}
           <section className="returns-section">
-            <p className="returns-section__label">OUR POLICY</p>
-            <h2 className="returns-section__title">30-Day Free Returns</h2>
+            <p className="returns-section__label">NOSSA POLÍTICA</p>
+            <h2 className="returns-section__title">Devoluções Grátis em 30 Dias</h2>
             <p className="returns-section__text">
-              We offer free returns and exchanges within 30 days of your delivery date. Items must be unworn,
-              unwashed, and in their original condition with all tags attached. Final Sale items are not eligible
-              for return or exchange.
+              Oferecemos devoluções e trocas grátis dentro de 30 dias a partir da data de entrega. Os itens devem estar
+              não usados, não lavados e em sua condição original com todas as etiquetas anexadas. Itens em promoção não
+              são elegíveis para devolução ou troca.
             </p>
           </section>
 
@@ -42,25 +32,25 @@ export function ReturnsPage() {
 
           {/* Step-by-step */}
           <section className="returns-section">
-            <p className="returns-section__label">HOW IT WORKS</p>
-            <h2 className="returns-section__title">Three simple steps.</h2>
+            <p className="returns-section__label">COMO FUNCIONA</p>
+            <h2 className="returns-section__title">Três passos simples.</h2>
 
             <div className="returns-steps">
               {[
                 {
                   n: "01",
-                  title: "Initiate your return",
-                  body: "Log in to your account and navigate to your Order History. Select the item(s) you'd like to return and choose 'Start a Return.' You'll receive a prepaid shipping label by email within minutes.",
+                  title: "Inicie sua devolução",
+                  body: "Faça login na sua conta e vá até o seu Histórico de Pedidos. Selecione o(s) item(ns) que deseja devolver e escolha 'Iniciar uma Devolução'. Você receberá um rótulo de envio pré-pago por e-mail em minutos.",
                 },
                 {
                   n: "02",
-                  title: "Pack & ship",
-                  body: "Place the item(s) in any suitable box or the original packaging if you still have it. Attach your prepaid return label and drop the package at any USPS location or schedule a free pickup. We recommend keeping the tracking number for your records.",
+                  title: "Embalagem e envio",
+                  body: "Coloque o(s) item(ns) em qualquer caixa adequada ou na embalagem original, se ainda a tiver. Anexe seu rótulo de devolução pré-pago e entregue o pacote em qualquer local do USPS ou agende uma coleta gratuita. Recomendamos que você mantenha o número de rastreamento para seus registros.",
                 },
                 {
                   n: "03",
-                  title: "Receive your refund or exchange",
-                  body: "Once we receive and inspect your return (typically within 3–5 business days), we'll process your refund to the original payment method or dispatch your exchange order. Refunds may take 5–10 business days to appear depending on your bank.",
+                  title: "Receba seu reembolso ou troca",
+                  body: "Assim que recebermos e inspecionarmos sua devolução (normalmente dentro de 3 a 5 dias úteis), processaremos seu reembolso para o método de pagamento original ou despacharemos seu pedido de troca. Os reembolsos podem levar de 5 a 10 dias úteis para aparecer, dependendo do seu banco.",
                 },
               ].map(step => (
                 <div key={step.n} className="returns-step">
@@ -76,31 +66,30 @@ export function ReturnsPage() {
 
           <div className="returns-divider" />
 
-          {/* Conditions grid */}
           <section className="returns-section">
             <p className="returns-section__label">ELIGIBILITY</p>
-            <h2 className="returns-section__title">What can be returned?</h2>
+            <h2 className="returns-section__title">O que pode ser devolvido?</h2>
             <div className="returns-eligibility">
               <div className="returns-eligibility__col returns-eligibility__col--yes">
-                <p className="returns-eligibility__head">✓ &nbsp;Eligible for return</p>
+                <p className="returns-eligibility__head">✓ &nbsp;Elegível para devolução</p>
                 {[
-                  "Full-price items within 30 days",
-                  "Unworn & unwashed items",
-                  "Items with original tags attached",
-                  "Items in original packaging",
-                  "Sale items (non-final)",
+                  "Itens a preço integral dentro de 30 dias",
+                  "Itens não usados e não lavados",
+                  "Itens com etiquetas originais anexadas",
+                  "Itens na embalagem original",
+                  "Itens em promoção (não finais)",
                 ].map(line => (
                   <p key={line} className="returns-eligibility__item">{line}</p>
                 ))}
               </div>
               <div className="returns-eligibility__col returns-eligibility__col--no">
-                <p className="returns-eligibility__head">✕ &nbsp;Not eligible</p>
+                <p className="returns-eligibility__head">✕ &nbsp;Não elegível</p>
                 {[
-                  "Final Sale items",
-                  "Items returned after 30 days",
-                  "Washed, worn or altered items",
-                  "Items without original tags",
-                  "Gift cards",
+                  "Itens em promoção",
+                  "Itens devolvidos após 30 dias",
+                  "Itens lavados, usados ou alterados",
+                  "Itens sem etiquetas originais",
+                  "Cartões-presente",
                 ].map(line => (
                   <p key={line} className="returns-eligibility__item">{line}</p>
                 ))}
@@ -110,66 +99,47 @@ export function ReturnsPage() {
 
           <div className="returns-divider" />
 
-          {/* Exchange section */}
           <section className="returns-section">
-            <p className="returns-section__label">EXCHANGES</p>
-            <h2 className="returns-section__title">Need a different size or color?</h2>
+            <p className="returns-section__label">TROCAS</p>
+            <h2 className="returns-section__title">Precisa de um tamanho ou cor diferente?</h2>
             <p className="returns-section__text">
-              Exchanges are processed the same way as returns. During the return process, simply select "Exchange"
-              instead of "Refund" and choose your preferred size or color. We'll ship the replacement as soon as
-              your original return is confirmed in transit — so you won't have to wait for it to arrive at our
-              warehouse before we send the new item.
+              As trocas são processadas da mesma forma que as devoluções. Durante o processo de devolução, basta selecionar "Troca"
+              em vez de "Reembolso" e escolher o tamanho ou a cor desejada. Enviaremos a substituição assim que
+              sua devolução original for confirmada em trânsito — assim você não precisará esperar que ela chegue ao nosso
+              armazém antes de enviarmos o novo item.
             </p>
             <p className="returns-section__text" style={{ marginTop: 16 }}>
-              If your preferred exchange item is out of stock, we'll issue a full refund and notify you by email.
-              You can also contact our customer care team at{" "}
+              Se o item de troca preferido estiver fora de estoque, emitiremos um reembolso total e notificaremos você por e-mail.
+              Você também pode entrar em contato com nossa equipe de atendimento ao cliente em{" "}
               <span style={{ color: "#262626", textDecoration: "underline", cursor: "pointer" }}>
-                care@everlane.com
+                cuidado@ganjj.com
               </span>
-              {" "}and we'll do our best to source it for you.
+              {" "}e faremos o nosso melhor para encontrá-lo para você.
             </p>
           </section>
 
           <div className="returns-divider" />
 
-          {/* International */}
           <section className="returns-section">
-            <p className="returns-section__label">INTERNATIONAL ORDERS</p>
-            <h2 className="returns-section__title">Returning from outside the US?</h2>
-            <p className="returns-section__text">
-              For international returns, please contact our customer care team to receive return instructions
-              specific to your country. Please note that international return shipping costs are the responsibility
-              of the customer and are non-refundable. We recommend using a tracked shipping service.
-            </p>
-            <p className="returns-section__text" style={{ marginTop: 16 }}>
-              Duties and taxes paid at the time of purchase are non-refundable. Refunds are issued in USD at
-              the exchange rate applicable on the date the refund is processed.
-            </p>
-          </section>
-
-          <div className="returns-divider" />
-
-          {/* FAQ */}
-          <section className="returns-section">
-            <p className="returns-section__label">FREQUENTLY ASKED</p>
-            <h2 className="returns-section__title">Common questions.</h2>
+            <p className="returns-section__label">PERGUNTAS FREQUENTES</p>
+            <h2 className="returns-section__title">Perguntas comuns.</h2>
             <div className="returns-faqs">
               {[
                 {
-                  q: "How long does a refund take?",
-                  a: "Once your return is received and inspected (3–5 business days), refunds are issued immediately but may take an additional 5–10 business days to appear on your statement, depending on your bank or card issuer.",
+                  q: "Quanto tempo leva para um reembolso ser processado?",
+                  a: "Assim que sua devolução for recebida e inspecionada (3–5 dias úteis), os reembolsos são emitidos imediatamente, mas podem levar de 5 a 10 dias úteis para aparecer em seu extrato, dependendo do seu banco ou emissor do cartão.",
                 },
                 {
-                  q: "Can I return a gift?",
-                  a: "Yes. Gifts can be returned for store credit or exchanged for a different item. You'll need the order number, which you can find on the packing slip inside the original packaging.",
+                  q: "Posso devolver um presente?",
+                  a: "Sim. Presentes podem ser devolvidos para crédito na loja ou trocados por um item diferente. Você precisará do número do pedido, que pode ser encontrado no comprovante de embalagem dentro da embalagem original.",
                 },
                 {
-                  q: "What if my item arrived damaged or defective?",
-                  a: "We're sorry to hear that. Please contact us at care@everlane.com with photos of the damage and your order number. We'll arrange a replacement or full refund at no cost to you — no return shipping needed.",
+                  q: "E se meu item chegar danificado ou com defeito?",
+                  a: "Lamentamos saber disso. Entre em contato conosco pelo e-mail cuidado@ganjj.com com fotos do dano e seu número de pedido. Organizaremos uma substituição ou reembolso total sem custo para você — não é necessário devolver o item.",
                 },
                 {
-                  q: "Can I return items from multiple orders in one package?",
-                  a: "Yes, but please include a separate packing slip or note for each order inside the package, and use the return label corresponding to the highest-value order. Contact us in advance so we can match everything correctly.",
+                  q: "Posso devolver itens de vários pedidos em um único pacote?",
+                  a: "Sim, mas inclua um comprovante de embalagem ou nota separada para cada pedido dentro do pacote e use o rótulo de devolução correspondente ao pedido de maior valor. Entre em contato conosco com antecedência para que possamos combinar tudo corretamente.",
                 },
               ].map(faq => (
                 <div key={faq.q} className="returns-faq">
@@ -180,16 +150,15 @@ export function ReturnsPage() {
             </div>
           </section>
 
-          {/* CTA banner */}
           <div className="returns-cta-banner">
-            <p className="returns-cta-banner__title">Still have questions?</p>
-            <p className="returns-cta-banner__sub">Our customer care team is available Monday–Friday, 9 am–5 pm PT.</p>
+            <p className="returns-cta-banner__title">Ainda tem perguntas?</p>
+            <p className="returns-cta-banner__sub">Nossa equipe de atendimento ao cliente está disponível de segunda a sexta, das 9h às 17h PT.</p>
             <div className="returns-cta-banner__btns">
               <button className="returns-btn returns-btn--dark" onClick={() => navigate("/contact")}>
-                Contact Us
+                Fale Conosco
               </button>
               <button className="returns-btn returns-btn--outline">
-                care@everlane.com
+                cuidado@ganjj.com
               </button>
             </div>
           </div>
