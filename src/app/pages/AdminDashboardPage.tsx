@@ -1,8 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { AdminSidebar } from "../components/AdminSidebar";
-
-// ─── Icons ────────────────────────────────────────────────────────────────────
 
 function TrendUpIcon({ color = "#2a7a3b" }: { color?: string }) {
   return (
@@ -81,44 +79,61 @@ function RefreshIcon() {
   );
 }
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
+interface Kpis {
+  receita_total: number;
+  total_pedidos: number;
+  usuarios_ativos: number;
+  total_produtos: number;
+  sem_estoque: number;
+  ticket_medio: number;
+}
 
-const MONTHS = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-const REVENUE_DATA = [42, 58, 51, 74, 91, 88, 62, 78, 95, 82, 107, 124];
-const ORDERS_DATA  = [310, 420, 380, 510, 680, 630, 440, 560, 720, 590, 810, 940];
+interface GraficoMes {
+  mes: string;
+  receita: number;
+  pedidos: number;
+}
 
-const RECENT_ORDERS = [
-  { id: "#EV-48291", customer: "Sophie Nguyen",   product: "The Merino Turtleneck",       amount: 120, status: "Delivered", date: "Jun 19" },
-  { id: "#EV-48287", customer: "Marcus Rivera",   product: "The Straight Leg Jean",       amount: 196, status: "Shipped",   date: "Jun 19" },
-  { id: "#EV-48283", customer: "Priya Patel",     product: "The Oxford Shirt",            amount: 78,  status: "Processing",date: "Jun 18" },
-  { id: "#EV-48279", customer: "Ethan Brooks",    product: "The ReNew Fleece Jacket",     amount: 135, status: "Delivered", date: "Jun 18" },
-  { id: "#EV-48274", customer: "Nadia Okonkwo",   product: "The Italian Leather Belt",    amount: 55,  status: "Cancelled", date: "Jun 17" },
-  { id: "#EV-48270", customer: "Jordan Kim",      product: "The Canvas Tote",             amount: 35,  status: "Delivered", date: "Jun 17" },
-];
+interface StatusDist {
+  label: string;
+  value: number;
+  color: string;
+}
 
-const LOW_STOCK = [
-  { name: "The ReNew Fleece Jacket",   sku: "EVR-M-JKT-006", stock: 4,  category: "Men"   },
-  { name: "The Reversible Sherpa",     sku: "EVR-M-JKT-011", stock: 12, category: "Men"   },
-  { name: "The Linen Shirt Dress",     sku: "EVR-W-DRS-010", stock: 27, category: "Women" },
-  { name: "The Italian Leather Belt",  sku: "EVR-A-BLT-004", stock: 33, category: "Acc."  },
-];
+interface PedidoRecente {
+  id: string;
+  cliente: string;
+  itens: number;
+  total: number;
+  status: string;
+  data: string;
+}
 
-const TOP_PRODUCTS = [
-  { name: "The Merino Turtleneck",         revenue: 31200, orders: 260, pct: 100 },
-  { name: "The Straight Leg Jean",         revenue: 24696, orders: 252, pct: 79  },
-  { name: "The Reversible Sherpa Jacket",  revenue: 20196, orders: 102, pct: 65  },
-  { name: "The Oxford Shirt",              revenue: 19110, orders: 245, pct: 61  },
-  { name: "The Organic Cotton Box-Cut Tee",revenue: 14035, orders: 401, pct: 45  },
-];
+interface EstoqueBaixo {
+  nome: string;
+  estoque: number;
+  categoria: string;
+}
 
-const ORDER_STATUS_DIST = [
-  { label: "Delivered",  value: 68, color: "#2a7a3b" },
-  { label: "Shipped",    value: 18, color: "#4a7ab5" },
-  { label: "Processing", value: 10, color: "#f5a623" },
-  { label: "Cancelled",  value: 4,  color: "#d0021b" },
-];
+interface TopProduto {
+  nome: string;
+  receita: number;
+  pedidos: number;
+  pct: number;
+}
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+interface DashboardData {
+  kpis: Kpis;
+  grafico_mensal: GraficoMes[];
+  status_pedidos: StatusDist[];
+  pedidos_recentes: PedidoRecente[];
+  estoque_baixo: EstoqueBaixo[];
+  top_produtos: TopProduto[];
+}
+
+function fmtBRL(value: number) {
+  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 function KpiCard({
   label, value, sub, trend, icon, color
@@ -144,25 +159,26 @@ function KpiCard({
   );
 }
 
-type OrderStatus = "Delivered" | "Shipped" | "Processing" | "Cancelled";
-function OrderStatusBadge({ status }: { status: OrderStatus }) {
-  const cfg: Record<OrderStatus, { dot: string; color: string }> = {
-    Delivered:  { dot: "#2a7a3b", color: "#2a7a3b" },
-    Shipped:    { dot: "#4a7ab5", color: "#4a7ab5" },
-    Processing: { dot: "#f5a623", color: "#b07a0a" },
-    Cancelled:  { dot: "#d0021b", color: "#d0021b" },
-  };
+type OrderStatus = "Entregue" | "Enviado" | "Em processamento" | "Cancelado";
+const STATUS_CFG: Record<string, { dot: string; color: string }> = {
+  "Entregue":         { dot: "#2a7a3b", color: "#2a7a3b" },
+  "Enviado":          { dot: "#4a7ab5", color: "#4a7ab5" },
+  "Em processamento": { dot: "#f5a623", color: "#b07a0a" },
+  "Cancelado":        { dot: "#d0021b", color: "#d0021b" },
+};
+
+function OrderStatusBadge({ status }: { status: string }) {
+  const cfg = STATUS_CFG[status] ?? { dot: "#737373", color: "#737373" };
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cfg[status].color }}>
-      <span style={{ width: 6, height: 6, borderRadius: "50%", background: cfg[status].dot, flexShrink: 0 }} />
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cfg.color }}>
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: cfg.dot, flexShrink: 0 }} />
       {status}
     </span>
   );
 }
 
-// Mini bar chart – pure CSS
 function BarChart({ data, months }: { data: number[]; months: string[] }) {
-  const max = Math.max(...data);
+  const max = Math.max(...data, 1);
   return (
     <div className="dash-chart">
       {data.map((v, i) => (
@@ -171,7 +187,7 @@ function BarChart({ data, months }: { data: number[]; months: string[] }) {
             <div
               className="dash-chart__bar"
               style={{ height: `${(v / max) * 100}%` }}
-              title={`${months[i]}: $${v}k`}
+              title={`${months[i]}: R$ ${v.toLocaleString('pt-BR')}`}
             />
           </div>
           <span className="dash-chart__label">{months[i]}</span>
@@ -181,8 +197,7 @@ function BarChart({ data, months }: { data: number[]; months: string[] }) {
   );
 }
 
-// Donut-style ring using SVG
-function DonutChart({ segments }: { segments: { label: string; value: number; color: string }[] }) {
+function DonutChart({ segments }: { segments: StatusDist[] }) {
   const r = 48;
   const cx = 60;
   const cy = 60;
@@ -190,11 +205,13 @@ function DonutChart({ segments }: { segments: { label: string; value: number; co
   const total = segments.reduce((s, seg) => s + seg.value, 0);
   let offset = 0;
 
+  const topSegment = segments.length > 0 ? segments[0] : null;
+
   return (
     <div className="dash-donut">
       <svg width="120" height="120" viewBox="0 0 120 120">
         {segments.map(seg => {
-          const dashLength = (seg.value / total) * circumference;
+          const dashLength = (seg.value / (total || 1)) * circumference;
           const dash = `${dashLength} ${circumference - dashLength}`;
           const el = (
             <circle
@@ -211,8 +228,12 @@ function DonutChart({ segments }: { segments: { label: string; value: number; co
           offset += dashLength;
           return el;
         })}
-        <text x="60" y="56" textAnchor="middle" fontSize="14" fill="#262626">68%</text>
-        <text x="60" y="70" textAnchor="middle" fontSize="9" fill="#737373">Delivered</text>
+        {topSegment && (
+          <>
+            <text x="60" y="56" textAnchor="middle" fontSize="14" fill="#262626">{topSegment.value}%</text>
+            <text x="60" y="70" textAnchor="middle" fontSize="9" fill="#737373">{topSegment.label}</text>
+          </>
+        )}
       </svg>
       <div className="dash-donut__legend">
         {segments.map(seg => (
@@ -227,240 +248,261 @@ function DonutChart({ segments }: { segments: { label: string; value: number; co
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+const API_URL = 'http://localhost:3000';
 
 export function AdminDashboardPage() {
   const navigate = useNavigate();
   const [chartTab, setChartTab] = useState<"revenue" | "orders">("revenue");
   const [period, setPeriod]     = useState<"12m" | "6m" | "3m">("12m");
+  const [data, setData]         = useState<DashboardData | null>(null);
+  const [loading, setLoading]   = useState(true);
 
-  const slicedMonths  = period === "12m" ? MONTHS : period === "6m" ? MONTHS.slice(6) : MONTHS.slice(9);
-  const slicedRevenue = period === "12m" ? REVENUE_DATA : period === "6m" ? REVENUE_DATA.slice(6) : REVENUE_DATA.slice(9);
-  const slicedOrders  = period === "12m" ? ORDERS_DATA  : period === "6m" ? ORDERS_DATA.slice(6)  : ORDERS_DATA.slice(9);
+  const fetchDashboard = () => {
+    setLoading(true);
+    fetch(`${API_URL}/api/dashboard`)
+      .then(r => r.json())
+      .then((d: DashboardData) => { setData(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => { fetchDashboard(); }, []);
+
+  const grafico = data?.grafico_mensal ?? [];
+  const sliceStart = period === "12m" ? 0 : period === "6m" ? 6 : 9;
+  const slicedGrafico = grafico.slice(sliceStart);
+  const slicedMonths  = slicedGrafico.map(g => g.mes);
+  const slicedRevenue = slicedGrafico.map(g => g.receita);
+  const slicedOrders  = slicedGrafico.map(g => g.pedidos);
+
+  const kpis            = data?.kpis;
+  const statusPedidos   = data?.status_pedidos   ?? [];
+  const pedidosRecentes = data?.pedidos_recentes ?? [];
+  const estoqueBaixo    = data?.estoque_baixo    ?? [];
+  const topProdutos     = data?.top_produtos     ?? [];
 
   return (
     <div className="admin-page">
       <AdminSidebar activeItem="dashboard" />
 
       <main className="admin-main">
-        {/* Top bar */}
         <div className="admin-topbar">
           <div>
             <p className="admin-topbar__title">Dashboard</p>
-            <p className="admin-topbar__sub">Overview for the last 12 months · Updated just now</p>
+            <p className="admin-topbar__sub">Visão geral dos últimos 12 meses · Atualizado agora</p>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button className="admin-btn admin-btn--ghost" style={{ gap: 6, fontSize: 11 }}>
-              <RefreshIcon /> Refresh
+            <button className="admin-btn admin-btn--ghost" style={{ gap: 6, fontSize: 11 }} onClick={fetchDashboard}>
+              <RefreshIcon /> Atualizar
             </button>
             <button className="admin-btn admin-btn--dark" onClick={() => navigate("/admin/products")}>
-              + Add Product
+              + Adicionar Produto
             </button>
           </div>
         </div>
 
-        {/* KPI Cards */}
-        <div className="dash-kpis">
-          <KpiCard
-            label="Total Revenue"
-            value="$852,410"
-            sub="+18.4% vs last year"
-            trend="up"
-            icon={<DollarIcon />}
-            color="#2a7a3b"
-          />
-          <KpiCard
-            label="Total Orders"
-            value="6,993"
-            sub="+12.1% vs last year"
-            trend="up"
-            icon={<ShoppingBagIcon />}
-            color="#4a7ab5"
-          />
-          <KpiCard
-            label="Active Users"
-            value="10"
-            sub="+3 this month"
-            trend="up"
-            icon={<UsersIcon2 />}
-            color="#8a6ab5"
-          />
-          <KpiCard
-            label="Products"
-            value="12"
-            sub="4 out of stock"
-            trend="neutral"
-            icon={<PackageIcon />}
-            color="#b07a0a"
-          />
-          <KpiCard
-            label="Avg. Order Value"
-            value="$121.90"
-            sub="+5.3% vs last year"
-            trend="up"
-            icon={<DollarIcon />}
-            color="#2a7a3b"
-          />
-          <KpiCard
-            label="Return Rate"
-            value="4.2%"
-            sub="-0.8% vs last year"
-            trend="up"
-            icon={<RefreshIcon />}
-            color="#4a7ab5"
-          />
-        </div>
+        {loading && (
+          <p style={{ color: "#737373", fontSize: 13, padding: "40px 0", textAlign: "center" }}>
+            Carregando dados...
+          </p>
+        )}
 
-        {/* Charts row */}
-        <div className="dash-charts-row">
-
-          {/* Revenue / Orders bar chart */}
-          <div className="dash-panel dash-panel--wide">
-            <div className="dash-panel__head">
-              <div>
-                <p className="dash-panel__title">
-                  {chartTab === "revenue" ? "Revenue" : "Orders"}
-                </p>
-                <p className="dash-panel__sub">
-                  {chartTab === "revenue" ? "Monthly revenue in $k" : "Monthly order count"}
-                </p>
-              </div>
-              <div style={{ display: "flex", gap: 6 }}>
-                {(["revenue", "orders"] as const).map(t => (
-                  <button
-                    key={t}
-                    className={`dash-tab-btn${chartTab === t ? " dash-tab-btn--active" : ""}`}
-                    onClick={() => setChartTab(t)}
-                  >
-                    {t === "revenue" ? "Revenue" : "Orders"}
-                  </button>
-                ))}
-              </div>
-              <div style={{ display: "flex", gap: 4 }}>
-                {(["12m", "6m", "3m"] as const).map(p => (
-                  <button
-                    key={p}
-                    className={`dash-tab-btn${period === p ? " dash-tab-btn--active" : ""}`}
-                    onClick={() => setPeriod(p)}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
+        {!loading && (
+          <>
+            <div className="dash-kpis">
+              <KpiCard
+                label="Receita Total"
+                value={`R$ ${fmtBRL(kpis?.receita_total ?? 0)}`}
+                sub="acumulado"
+                trend="neutral"
+                icon={<DollarIcon />}
+                color="#2a7a3b"
+              />
+              <KpiCard
+                label="Total de Pedidos"
+                value={(kpis?.total_pedidos ?? 0).toLocaleString('pt-BR')}
+                sub="acumulado"
+                trend="neutral"
+                icon={<ShoppingBagIcon />}
+                color="#4a7ab5"
+              />
+              <KpiCard
+                label="Usuários Ativos"
+                value={(kpis?.usuarios_ativos ?? 0).toLocaleString('pt-BR')}
+                sub="cadastrados"
+                trend="neutral"
+                icon={<UsersIcon2 />}
+                color="#8a6ab5"
+              />
+              <KpiCard
+                label="Produtos"
+                value={(kpis?.total_produtos ?? 0).toLocaleString('pt-BR')}
+                sub={`${kpis?.sem_estoque ?? 0} sem estoque`}
+                trend={(kpis?.sem_estoque ?? 0) > 0 ? "down" : "neutral"}
+                icon={<PackageIcon />}
+                color="#b07a0a"
+              />
+              <KpiCard
+                label="Ticket Médio"
+                value={`R$ ${fmtBRL(kpis?.ticket_medio ?? 0)}`}
+                sub="por pedido"
+                trend="neutral"
+                icon={<DollarIcon />}
+                color="#2a7a3b"
+              />
             </div>
-            <BarChart
-              data={chartTab === "revenue" ? slicedRevenue : slicedOrders}
-              months={slicedMonths}
-            />
-          </div>
 
-          {/* Order status donut */}
-          <div className="dash-panel">
-            <div className="dash-panel__head">
-              <div>
-                <p className="dash-panel__title">Order Status</p>
-                <p className="dash-panel__sub">Distribution — all time</p>
-              </div>
-            </div>
-            <DonutChart segments={ORDER_STATUS_DIST} />
-          </div>
-
-        </div>
-
-        {/* Bottom row */}
-        <div className="dash-bottom-row">
-
-          {/* Recent Orders */}
-          <div className="dash-panel dash-panel--wide">
-            <div className="dash-panel__head">
-              <div>
-                <p className="dash-panel__title">Recent Orders</p>
-                <p className="dash-panel__sub">Last 6 transactions</p>
-              </div>
-              <button className="dash-tab-btn" onClick={() => {}}>View All</button>
-            </div>
-            <table className="admin-table" style={{ marginTop: 0 }}>
-              <thead>
-                <tr>
-                  <th className="admin-table__th">Order</th>
-                  <th className="admin-table__th">Customer</th>
-                  <th className="admin-table__th">Product</th>
-                  <th className="admin-table__th" style={{ textAlign: "right" }}>Amount</th>
-                  <th className="admin-table__th">Status</th>
-                  <th className="admin-table__th">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {RECENT_ORDERS.map(order => (
-                  <tr key={order.id} className="admin-table__row">
-                    <td className="admin-table__td" style={{ fontSize: 11, letterSpacing: "0.4px", color: "#737373" }}>{order.id}</td>
-                    <td className="admin-table__td">{order.customer}</td>
-                    <td className="admin-table__td admin-table__td--muted" style={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.product}</td>
-                    <td className="admin-table__td" style={{ textAlign: "right" }}>${order.amount}</td>
-                    <td className="admin-table__td"><OrderStatusBadge status={order.status as OrderStatus} /></td>
-                    <td className="admin-table__td admin-table__td--muted">{order.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Right column: Low stock + Top products */}
-          <div className="dash-col-right">
-
-            {/* Low stock alerts */}
-            <div className="dash-panel">
-              <div className="dash-panel__head">
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <AlertIcon />
-                  <p className="dash-panel__title">Low Stock Alerts</p>
+            <div className="dash-charts-row">
+              <div className="dash-panel dash-panel--wide">
+                <div className="dash-panel__head">
+                  <div>
+                    <p className="dash-panel__title">
+                      {chartTab === "revenue" ? "Receita" : "Pedidos"}
+                    </p>
+                    <p className="dash-panel__sub">
+                      {chartTab === "revenue" ? "Receita mensal em R$" : "Total de pedidos mensais"}
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {(["revenue", "orders"] as const).map(t => (
+                      <button
+                        key={t}
+                        className={`dash-tab-btn${chartTab === t ? " dash-tab-btn--active" : ""}`}
+                        onClick={() => setChartTab(t)}
+                      >
+                        {t === "revenue" ? "Receita" : "Pedidos"}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {(["12m", "6m", "3m"] as const).map(p => (
+                      <button
+                        key={p}
+                        className={`dash-tab-btn${period === p ? " dash-tab-btn--active" : ""}`}
+                        onClick={() => setPeriod(p)}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <button className="dash-tab-btn" onClick={() => navigate("/admin/products")}>Manage</button>
+                <BarChart
+                  data={chartTab === "revenue" ? slicedRevenue : slicedOrders}
+                  months={slicedMonths}
+                />
               </div>
-              <div className="dash-alerts">
-                {LOW_STOCK.map(item => (
-                  <div key={item.sku} className="dash-alert">
-                    <div>
-                      <p className="dash-alert__name">{item.name}</p>
-                      <p className="dash-alert__sku">{item.sku} · {item.category}</p>
-                    </div>
-                    <span
-                      className="dash-alert__stock"
-                      style={{ color: item.stock < 10 ? "#d0021b" : "#f5a623" }}
-                    >
-                      {item.stock} left
-                    </span>
+
+              <div className="dash-panel">
+                <div className="dash-panel__head">
+                  <div>
+                    <p className="dash-panel__title">Status dos Pedidos</p>
+                    <p className="dash-panel__sub">Distribuição — todo o período</p>
                   </div>
-                ))}
+                </div>
+                <DonutChart segments={statusPedidos} />
               </div>
             </div>
 
-            {/* Top products */}
-            <div className="dash-panel">
-              <div className="dash-panel__head">
-                <p className="dash-panel__title">Top Products</p>
+            {/* Bottom row */}
+            <div className="dash-bottom-row">
+
+              {/* Pedidos Recentes */}
+              <div className="dash-panel dash-panel--wide">
+                <div className="dash-panel__head">
+                  <div>
+                    <p className="dash-panel__title">Pedidos Recentes</p>
+                    <p className="dash-panel__sub">Últimas 6 transações</p>
+                  </div>
+                  <button className="dash-tab-btn" onClick={() => navigate("/admin/orders")}>Ver Todos</button>
+                </div>
+                <table className="admin-table" style={{ marginTop: 0 }}>
+                  <thead>
+                    <tr>
+                      <th className="admin-table__th">Pedido</th>
+                      <th className="admin-table__th">Cliente</th>
+                      <th className="admin-table__th">Itens</th>
+                      <th className="admin-table__th" style={{ textAlign: "right" }}>Total</th>
+                      <th className="admin-table__th">Status</th>
+                      <th className="admin-table__th">Data</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pedidosRecentes.map(order => (
+                      <tr key={order.id} className="admin-table__row">
+                        <td className="admin-table__td" style={{ fontSize: 11, letterSpacing: "0.4px", color: "#737373" }}>{order.id}</td>
+                        <td className="admin-table__td">{order.cliente}</td>
+                        <td className="admin-table__td admin-table__td--muted">{order.itens} {order.itens === 1 ? "item" : "itens"}</td>
+                        <td className="admin-table__td" style={{ textAlign: "right" }}>R$ {fmtBRL(order.total)}</td>
+                        <td className="admin-table__td"><OrderStatusBadge status={order.status as OrderStatus} /></td>
+                        <td className="admin-table__td admin-table__td--muted">{order.data}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div className="dash-top-products">
-                {TOP_PRODUCTS.map(p => (
-                  <div key={p.name} className="dash-top-product">
-                    <div style={{ flex: 1 }}>
-                      <p className="dash-top-product__name">{p.name}</p>
-                      <div className="dash-top-product__bar-track">
-                        <div className="dash-top-product__bar" style={{ width: `${p.pct}%` }} />
+
+              <div className="dash-col-right">
+
+                {/* Alertas de Estoque Baixo */}
+                <div className="dash-panel">
+                  <div className="dash-panel__head">
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <AlertIcon />
+                      <p className="dash-panel__title">Alertas de Estoque Baixo</p>
+                    </div>
+                    <button className="dash-tab-btn" onClick={() => navigate("/admin/products")}>Gerenciar</button>
+                  </div>
+                  <div className="dash-alerts">
+                    {estoqueBaixo.length === 0 && (
+                      <p style={{ fontSize: 12, color: "#737373", padding: "8px 0" }}>Nenhum produto com estoque baixo.</p>
+                    )}
+                    {estoqueBaixo.map(item => (
+                      <div key={item.nome} className="dash-alert">
+                        <div>
+                          <p className="dash-alert__name">{item.nome}</p>
+                          <p className="dash-alert__sku">{item.categoria}</p>
+                        </div>
+                        <span
+                          className="dash-alert__stock"
+                          style={{ color: item.estoque < 10 ? "#d0021b" : "#f5a623" }}
+                        >
+                          {item.estoque} restantes
+                        </span>
                       </div>
-                    </div>
-                    <div className="dash-top-product__stats">
-                      <span>${(p.revenue / 1000).toFixed(1)}k</span>
-                      <span style={{ color: "#b0aeae" }}>·</span>
-                      <span style={{ color: "#737373" }}>{p.orders} orders</span>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                {/* Top Produtos */}
+                <div className="dash-panel">
+                  <div className="dash-panel__head">
+                    <p className="dash-panel__title">Produtos Mais Vendidos</p>
+                  </div>
+                  <div className="dash-top-products">
+                    {topProdutos.length === 0 && (
+                      <p style={{ fontSize: 12, color: "#737373" }}>Nenhuma venda registrada.</p>
+                    )}
+                    {topProdutos.map(p => (
+                      <div key={p.nome} className="dash-top-product">
+                        <div style={{ flex: 1 }}>
+                          <p className="dash-top-product__name">{p.nome}</p>
+                          <div className="dash-top-product__bar-track">
+                            <div className="dash-top-product__bar" style={{ width: `${p.pct}%` }} />
+                          </div>
+                        </div>
+                        <div className="dash-top-product__stats">
+                          <span>R$ {(p.receita / 1000).toFixed(1)}k</span>
+                          <span style={{ color: "#b0aeae" }}>·</span>
+                          <span style={{ color: "#737373" }}>{p.pedidos} pedidos</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
               </div>
             </div>
-
-          </div>
-        </div>
+          </>
+        )}
       </main>
     </div>
   );

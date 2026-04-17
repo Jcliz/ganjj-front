@@ -4955,6 +4955,53 @@ a {
   grid-template-columns: repeat(6, 1fr);
   gap: 12px;
 }
+.dash-kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+.dash-kpi { background: #fff; border: 1px solid #dddbdc; padding: 16px; display: flex; gap: 12px; align-items: flex-start; }
+.dash-kpi__icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: #fafafa; border: 1px solid #dddbdc; flex-shrink: 0; }
+.dash-kpi__body { flex: 1; min-width: 0; }
+.dash-kpi__label { font-size: 9px; letter-spacing: 0.8px; color: #737373; text-transform: uppercase; margin-bottom: 4px; }
+.dash-kpi__value { font-size: 20px; line-height: 28px; color: #262626; letter-spacing: -0.3px; }
+.dash-kpi__trend { display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 10px; letter-spacing: 0.4px; }
+.dash-charts-row { display: flex; gap: 16px; }
+.dash-panel { background: #fff; border: 1px solid #dddbdc; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.dash-panel--wide { flex: 2; }
+.dash-panel__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dash-panel__title { font-size: 14px; color: #262626; letter-spacing: 0.2px; }
+.dash-panel__sub { font-size: 11px; color: #737373; letter-spacing: 0.4px; margin-top: 2px; }
+.dash-tab-btn { padding: 6px 12px; font-size: 11px; letter-spacing: 0.4px; color: #737373; background: #f5f4f4; border: 1px solid #dddbdc; cursor: pointer; font-family: inherit; transition: background 0.15s, color 0.15s; }
+.dash-tab-btn:hover { color: #262626; background: #f0efef; }
+.dash-tab-btn--active { background: #262626; color: #fff; border-color: #262626; }
+.dash-chart { display: flex; align-items: flex-end; gap: 6px; height: 160px; padding-top: 8px; }
+.dash-chart__col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; }
+.dash-chart__bar-wrap { flex: 1; width: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
+.dash-chart__bar { background: #262626; width: 100%; min-height: 2px; transition: height 0.3s; }
+.dash-chart__bar:hover { background: #4a4a4a; }
+.dash-chart__label { font-size: 9px; letter-spacing: 0.4px; color: #b0aeae; white-space: nowrap; }
+.dash-donut { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.dash-donut__legend { display: flex; flex-direction: column; gap: 8px; }
+.dash-donut__item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #737373; letter-spacing: 0.4px; }
+.dash-donut__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dash-donut__item-label { flex: 1; }
+.dash-donut__item-val { color: #262626; }
+.dash-bottom-row { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+.dash-col-right { display: flex; flex-direction: column; gap: 16px; width: 320px; flex-shrink: 0; }
+
+@media (max-width: 1100px) {
+  .dash-col-right { width: 100%; }
+  .dash-panel--wide { min-width: 0; width: 100%; }
+}
+.dash-alerts { display: flex; flex-direction: column; }
+.dash-alert { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0efef; gap: 12px; }
+.dash-alert:last-child { border-bottom: none; }
+.dash-alert__name { font-size: 12px; color: #262626; letter-spacing: 0.2px; line-height: 17px; }
+.dash-alert__sku { font-size: 10px; color: #737373; letter-spacing: 0.4px; margin-top: 2px; }
+.dash-alert__stock { font-size: 11px; letter-spacing: 0.4px; white-space: nowrap; flex-shrink: 0; }
+.dash-top-products { display: flex; flex-direction: column; gap: 12px; }
+.dash-top-product { display: flex; align-items: center; gap: 12px; }
+.dash-top-product__name { font-size: 11px; color: #262626; letter-spacing: 0.2px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-top-product__bar-track { height: 3px; background: #f0efef; width: 100%; }
+.dash-top-product__bar { height: 3px; background: #262626; }
+.dash-top-product__stats { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #262626; letter-spacing: 0.4px; white-space: nowrap; flex-shrink: 0; }
 
 .dash-kpi {
   background: #fff;
