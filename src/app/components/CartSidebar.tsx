@@ -1,7 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
-
-// ─── Icons ────────────────────────────────────────────────────────────────────
 
 function CloseIcon() {
   return (
@@ -49,8 +47,6 @@ function LockIcon() {
   );
 }
 
-// ─── Types & mock data ────────────────────────────────────────────────────────
-
 interface CartItem {
   id: number;
   name: string;
@@ -62,12 +58,10 @@ interface CartItem {
 }
 
 const INITIAL_CART: CartItem[] = [
-  { id: 1, name: "The Organic Cotton Box-Cut Tee", color: "Black",  colorHex: "#262626", size: "M",     price: 35,  qty: 1 },
-  { id: 2, name: "The Merino Turtleneck",          color: "Forest", colorHex: "#2e4a3a", size: "S",     price: 120, qty: 1 },
-  { id: 3, name: "The Straight Leg Jean",          color: "Slate",  colorHex: "#5c6b7a", size: "28×30", price: 98,  qty: 2 },
+  { id: 1, name: "Camiseta boxy",   color: "Black",  colorHex: "#262626", size: "M",     price: 35,  qty: 1 },
+  { id: 2, name: "Turtleneck", color: "Forest", colorHex: "#2e4a3a", size: "S",     price: 120, qty: 1 },
+  { id: 3, name: "Jeans reta", color: "Slate",  colorHex: "#5c6b7a", size: "L",     price: 98,  qty: 2 },
 ];
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -98,7 +92,7 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   }
 
   function applyPromo() {
-    if (promoCode.trim().toUpperCase() === "EVERLANE10") setPromoApplied(true);
+    if (promoCode.trim().toUpperCase() === "GANJJ10") setPromoApplied(true);
   }
 
   function handleCheckout() {
@@ -108,7 +102,6 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
   return (
     <>
-      {/* Backdrop */}
       {isOpen && (
         <div
           className="cart-backdrop"
@@ -116,12 +109,10 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         />
       )}
 
-      {/* Drawer */}
       <div className={`cart-drawer${isOpen ? " cart-drawer--open" : ""}`}>
-        {/* Header */}
         <div className="cart-drawer__head">
           <p className="cart-drawer__title">
-            Your Bag
+            Seu carrinho
             {items.length > 0 && (
               <span className="cart-drawer__count"> ({items.reduce((s, i) => s + i.qty, 0)})</span>
             )}
@@ -130,43 +121,37 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         </div>
 
         {items.length === 0 ? (
-          /* Empty state */
           <div className="cart-empty">
-            <p className="cart-empty__title">Your bag is empty.</p>
-            <p className="cart-empty__sub">Add items to get started.</p>
+            <p className="cart-empty__title">Seu carrinho está vazio.</p>
+            <p className="cart-empty__sub">Adicione itens para começar.</p>
             <button className="cart-cta" onClick={() => { onClose(); navigate("/listing"); }}>
-              Shop Now
+              Comprar agora
             </button>
           </div>
         ) : (
           <>
-            {/* Free shipping notice */}
             {shipping > 0 && (
               <div className="cart-shipping-notice">
-                Add <strong>${(100 - subtotal).toFixed(0)} more</strong> for free shipping
+                Adicione <strong>R${(100 - subtotal).toFixed(0)} a mais</strong> para frete grátis
               </div>
             )}
             {shipping === 0 && (
               <div className="cart-shipping-notice cart-shipping-notice--free">
-                ✓ You've unlocked free shipping!
+                ✓ Você desbloqueou o frete grátis!
               </div>
             )}
 
-            {/* Items */}
             <div className="cart-items">
               {items.map(item => (
                 <div key={item.id} className="cart-item">
-                  {/* Swatch thumb */}
                   <div
                     className="cart-item__thumb"
                     style={{ background: item.colorHex, border: parseInt(item.colorHex.replace("#", ""), 16) > 0xaaaaaa ? "1px solid #dddbdc" : "none" }}
                   />
-                  {/* Info */}
                   <div className="cart-item__info">
                     <p className="cart-item__name">{item.name}</p>
                     <p className="cart-item__meta">{item.color} · {item.size}</p>
                     <div className="cart-item__bottom">
-                      {/* Qty controls */}
                       <div className="cart-qty">
                         <button className="cart-qty__btn" onClick={() => changeQty(item.id, -1)}>
                           <MinusIcon />
@@ -177,7 +162,7 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         </button>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <p className="cart-item__price">${(item.price * item.qty).toFixed(0)}</p>
+                        <p className="cart-item__price">R${(item.price * item.qty).toFixed(0)}</p>
                         <button className="cart-item__remove" onClick={() => removeItem(item.id)}>
                           <TrashIcon />
                         </button>
@@ -188,7 +173,6 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
               ))}
             </div>
 
-            {/* Promo */}
             <div className="cart-promo">
               <input
                 className="cart-promo__input"
@@ -202,45 +186,43 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                 onClick={applyPromo}
                 disabled={promoApplied}
               >
-                {promoApplied ? "Applied" : "Apply"}
+                {promoApplied ? "Aplicado" : "Aplicar"}
               </button>
             </div>
             {promoApplied && (
               <p style={{ fontSize: 11, color: "#2a7a3b", letterSpacing: "0.4px", padding: "0 20px", marginTop: -8 }}>
-                10% discount applied — code EVERLANE10
+                10% de desconto aplicado — código GANJJ10
               </p>
             )}
 
-            {/* Summary */}
             <div className="cart-summary">
               <div className="cart-summary__row">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(0)}</span>
+                <span>R${subtotal.toFixed(0)}</span>
               </div>
               {promoApplied && (
                 <div className="cart-summary__row cart-summary__row--discount">
-                  <span>Discount (10%)</span>
-                  <span>−${discount.toFixed(0)}</span>
+                  <span>Desconto (10%)</span>
+                  <span>R${discount.toFixed(0)}</span>
                 </div>
               )}
               <div className="cart-summary__row">
-                <span>Shipping</span>
-                <span>{shipping === 0 ? "Free" : `$${shipping}`}</span>
+                <span>Frete</span>
+                <span>{shipping === 0 ? "Grátis" : `R$${shipping}`}</span>
               </div>
               <div className="cart-summary__row cart-summary__row--total">
                 <span>Total</span>
-                <span>${total.toFixed(0)}</span>
+                <span>R${total.toFixed(0)}</span>
               </div>
             </div>
 
-            {/* CTA */}
             <div className="cart-footer">
               <button className="cart-cta" onClick={handleCheckout}>
-                Checkout · ${total.toFixed(0)}
+                Checkout · R${total.toFixed(0)}
               </button>
               <p className="cart-secure">
                 <LockIcon />
-                Secure &amp; encrypted checkout
+                Checkout criptografado para a sua proteção.
               </p>
             </div>
           </>
