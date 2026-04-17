@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Logo } from "../components/Logo";
 
 function EyeIcon({ visible }: { visible: boolean }) {
   return visible ? (
@@ -98,10 +97,10 @@ function Field({
 }
 
 const STRENGTHS = [
-  { label: "Weak",   color: "#d0021b", min: 1 },
-  { label: "Fair",   color: "#f5a623", min: 2 },
-  { label: "Good",   color: "#7ed321", min: 3 },
-  { label: "Strong", color: "#417505", min: 4 },
+  { label: "Fraca",      color: "#d0021b", min: 1 },
+  { label: "Moderada",   color: "#f5a623", min: 2 },
+  { label: "Boa",        color: "#7ed321", min: 3 },
+  { label: "Forte",      color: "#417505", min: 4 },
 ];
 
 function passwordStrength(pw: string): number {
@@ -117,37 +116,53 @@ export function RegisterPage() {
   const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName]   = useState("");
-  const [email, setEmail]         = useState("");
-  const [password, setPassword]   = useState("");
-  const [confirm, setConfirm]     = useState("");
-  const [agreed, setAgreed]       = useState(false);
-  const [showPw, setShowPw]       = useState(false);
-  const [showCf, setShowCf]       = useState(false);
-  const [focused, setFocused]     = useState<string | null>(null);
-  const [errors, setErrors]       = useState<Record<string, string>>({});
-  const [loading, setLoading]     = useState(false);
-  const [success, setSuccess]     = useState(false);
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [showCf, setShowCf] = useState(false);
+  const [focused, setFocused] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const pwStrength = passwordStrength(password);
   const strengthInfo = STRENGTHS[Math.min(pwStrength - 1, 3)] ?? null;
 
   function validate() {
     const e: Record<string, string> = {};
-    if (!firstName.trim()) e.firstName = "First name is required.";
-    if (!lastName.trim())  e.lastName  = "Last name is required.";
-    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = "Enter a valid email address.";
-    if (password.length < 8) e.password = "Password must be at least 8 characters.";
-    if (confirm !== password) e.confirm = "Passwords do not match.";
-    if (!agreed) e.agreed = "You must accept the terms to continue.";
+    if (!firstName.trim()) e.firstName = "Primeiro nome é necessário.";
+    if (!lastName.trim()) e.lastName = "Sobrenome é necessário.";
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = "Insira um endereço de email válido.";
+    if (password.length < 8) e.password = "A senha deve ter pelo menos 8 caracteres.";
+    if (confirm !== password) e.confirm = "As senhas não coincidem.";
+    if (!agreed) e.agreed = "Você deve aceitar os termos para continuar.";
     return e;
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs = validate();
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+
+    const allEmpty = !firstName.trim() && !lastName.trim() && !email.trim() && !password && !confirm && !agreed;
+
+    if (allEmpty) {
+      setGeneralError("Preencha todos os campos corretamente.");
+      setErrors({});
+      return;
+    }
+
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      setGeneralError("");
+      return;
+    }
+
     setErrors({});
+    setGeneralError("");
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
@@ -158,11 +173,6 @@ export function RegisterPage() {
   if (success) {
     return (
       <div className="login-page">
-        <header className="login-header">
-          <div className="login-header__logo" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
-            <Logo />
-          </div>
-        </header>
         <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 24px" }}>
           <div className="register-success">
             <div className="register-success__icon">
@@ -171,10 +181,10 @@ export function RegisterPage() {
                 <polyline points="7,12 10.5,15.5 17,8.5" stroke="#262626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <p className="register-success__title">Account Created</p>
-            <p className="register-success__sub">Welcome, {firstName}. Your Everlane account is ready.</p>
+            <p className="register-success__title">Conta Criada</p>
+            <p className="register-success__sub">Bem-vindo, {firstName}. Sua conta Everlane está pronta.</p>
             <button className="login-submit-btn" style={{ marginTop: 8 }} onClick={() => navigate("/login")}>
-              SIGN IN NOW
+              ENTRAR AGORA
             </button>
           </div>
         </main>
@@ -184,81 +194,65 @@ export function RegisterPage() {
 
   return (
     <div className="login-page">
-      {/* Minimal header */}
-      <header className="login-header">
-        <div className="login-header__logo" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
-          <Logo />
-        </div>
-      </header>
-
       <main className="login-main">
-        {/* Left panel */}
         <div className="login-panel">
           <div className="login-panel__overlay">
             <div className="login-panel__quote">
-              <p className="login-panel__quote-text">"Your style.<br />Your values.<br />Your Everlane."</p>
-              <p className="login-panel__quote-sub">Join a community that cares.</p>
+              <p className="login-panel__quote-text">"O seu estilo.<br />Os seus valores.<br />Você."</p>
+              <p className="login-panel__quote-sub">Junte-se a uma comunidade que se preocupa.</p>
             </div>
           </div>
         </div>
 
-        {/* Right form */}
         <div className="login-form-side" style={{ width: 520 }}>
           <div className="login-form-card" style={{ maxWidth: 400 }}>
-            {/* Heading */}
             <div className="login-form-card__header">
-              <p className="login-form-card__title">Create Account</p>
+              <p className="login-form-card__title">Crie sua conta</p>
               <p className="login-form-card__subtitle">
-                Already have one?{" "}
+                Já tem uma?{" "}
                 <span className="login-form-card__link" onClick={() => navigate("/login")}>
-                  Sign in
+                  Entrar
                 </span>
               </p>
             </div>
 
-            {/* Social */}
             <div className="login-socials">
-              <button className="login-social-btn"><AppleIcon /><span>Continue with Apple</span></button>
-              <button className="login-social-btn"><GoogleIcon /><span>Continue with Google</span></button>
-              <button className="login-social-btn"><FacebookIcon /><span>Continue with Facebook</span></button>
+              <button className="login-social-btn"><AppleIcon /><span>Continue com Apple</span></button>
+              <button className="login-social-btn"><GoogleIcon /><span>Continue com Google</span></button>
+              <button className="login-social-btn"><FacebookIcon /><span>Continue com Facebook</span></button>
             </div>
 
-            {/* Divider */}
             <div className="login-divider">
               <div className="login-divider__line" />
-              <span className="login-divider__label">or register with email</span>
+              <span className="login-divider__label">ou registre-se com email</span>
               <div className="login-divider__line" />
             </div>
 
-            {/* Form */}
             <form className="login-form" onSubmit={handleSubmit} noValidate>
-              {/* Name row */}
               <div className="register-name-row">
                 <Field
-                  id="firstName" label="FIRST NAME" placeholder="Jane"
+                  id="firstName" label="Primeiro nome" placeholder="Jane"
                   value={firstName} onChange={setFirstName}
                   focusedField={focused} onFocus={() => setFocused("firstName")} onBlur={() => setFocused(null)}
                   autoComplete="given-name" error={errors.firstName}
                 />
                 <Field
-                  id="lastName" label="LAST NAME" placeholder="Doe"
+                  id="lastName" label="Sobrenome" placeholder="Doe"
                   value={lastName} onChange={setLastName}
                   focusedField={focused} onFocus={() => setFocused("lastName")} onBlur={() => setFocused(null)}
                   autoComplete="family-name" error={errors.lastName}
                 />
               </div>
 
-              {/* Email */}
               <Field
-                id="email" label="EMAIL ADDRESS" type="email" placeholder="you@example.com"
+                id="email" label="Endereço de e-mail" type="email" placeholder="voce@exemplo.com"
                 value={email} onChange={setEmail}
                 focusedField={focused} onFocus={() => setFocused("email")} onBlur={() => setFocused(null)}
                 autoComplete="email" error={errors.email}
               />
 
-              {/* Password */}
               <div className="register-field">
-                <label className="login-field__label" htmlFor="pw">PASSWORD</label>
+                <label className="login-field__label" htmlFor="pw">SENHA</label>
                 <div
                   className="login-field__input-wrap"
                   style={{ borderColor: errors.password ? "#d0021b" : focused === "pw" ? "#262626" : "#dddbdc" }}
@@ -267,7 +261,7 @@ export function RegisterPage() {
                     id="pw"
                     className="login-field__input-inner"
                     type={showPw ? "text" : "password"}
-                    placeholder="Min. 8 characters"
+                    placeholder="Min. 8 caracteres"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     onFocus={() => setFocused("pw")}
@@ -278,7 +272,7 @@ export function RegisterPage() {
                     <EyeIcon visible={showPw} />
                   </button>
                 </div>
-                {/* Strength bar */}
+
                 {password.length > 0 && (
                   <div className="register-strength">
                     <div className="register-strength__bars">
@@ -300,9 +294,8 @@ export function RegisterPage() {
                 {errors.password && <p className="register-field__error">{errors.password}</p>}
               </div>
 
-              {/* Confirm password */}
               <div className="register-field">
-                <label className="login-field__label" htmlFor="confirm">CONFIRM PASSWORD</label>
+                <label className="login-field__label" htmlFor="confirm">CONFIRMAR SENHA</label>
                 <div
                   className="login-field__input-wrap"
                   style={{ borderColor: errors.confirm ? "#d0021b" : focused === "confirm" ? "#262626" : "#dddbdc" }}
@@ -311,7 +304,7 @@ export function RegisterPage() {
                     id="confirm"
                     className="login-field__input-inner"
                     type={showCf ? "text" : "password"}
-                    placeholder="Re-enter password"
+                    placeholder="Re-escreva sua senha"
                     value={confirm}
                     onChange={e => setConfirm(e.target.value)}
                     onFocus={() => setFocused("confirm")}
@@ -330,7 +323,6 @@ export function RegisterPage() {
                 {errors.confirm && <p className="register-field__error">{errors.confirm}</p>}
               </div>
 
-              {/* Terms checkbox */}
               <div className="register-checkbox-row">
                 <div
                   className="register-checkbox"
@@ -340,23 +332,24 @@ export function RegisterPage() {
                   {agreed && <CheckIcon />}
                 </div>
                 <p className="register-checkbox-label">
-                  I agree to the{" "}
-                  <span className="login-terms__link">Terms of Service</span>
-                  {" "}and{" "}
-                  <span className="login-terms__link">Privacy Policy</span>
-                  . I'd like to receive emails about new products and promotions.
+                  Concordo com os{" "}
+                  <span className="login-terms__link">Termos de Serviço</span>
+                  {" "}e{" "}
+                  <span className="login-terms__link">Política de Privacidade</span>
+                  . Gostaria de receber e-mails sobre novos produtos e promoções.
                 </p>
               </div>
               {errors.agreed && <p className="register-field__error" style={{ marginTop: -12 }}>{errors.agreed}</p>}
 
-              {/* Submit */}
+              {generalError && <p className="login-error">{generalError}</p>}
+
               <button
                 type="submit"
                 className="login-submit-btn"
                 disabled={loading}
                 style={{ opacity: loading ? 0.7 : 1 }}
               >
-                {loading ? "CREATING ACCOUNT…" : "CREATE ACCOUNT"}
+                {loading ? "CRIANDO CONTA…" : "CRIAR CONTA"}
               </button>
             </form>
           </div>
