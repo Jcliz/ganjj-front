@@ -27,10 +27,12 @@ function ChevronRightIcon() {
   );
 }
 
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+
 const CART_ITEMS = [
-  { id: 1, name: "Camiseta boxy",   color: "Black",  colorHex: "#262626", size: "M",     price: 35,  qty: 1 },
-  { id: 2, name: "Turtleneck", color: "Forest", colorHex: "#2e4a3a", size: "S",     price: 120, qty: 1 },
-  { id: 3, name: "Jeans reta", color: "Slate",  colorHex: "#5c6b7a", size: "L",     price: 98,  qty: 2 },
+  { id: 1, produto_id: 1, name: "Camiseta boxy",   color: "Black",  colorHex: "#262626", size: "M", price: 35,  qty: 1 },
+  { id: 2, produto_id: 2, name: "Turtleneck",      color: "Forest", colorHex: "#2e4a3a", size: "S", price: 120, qty: 1 },
+  { id: 3, produto_id: 8, name: "Jeans reta",      color: "Slate",  colorHex: "#5c6b7a", size: "L", price: 98,  qty: 2 },
 ];
 const SUBTOTAL = CART_ITEMS.reduce((s, i) => s + i.price * i.qty, 0);
 const SHIPPING  = 0;
@@ -68,8 +70,11 @@ function Field({
 
 export function CheckoutPage() {
   const navigate = useNavigate();
-  const [step,    setStep]    = useState<Step>(1);
-  const [focused, setFocused] = useState<string | null>(null);
+  const [step,      setStep]      = useState<Step>(1);
+  const [focused,   setFocused]   = useState<string | null>(null);
+  const [orderId,   setOrderId]   = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [sFirstName,  setSFirstName]  = useState("");
   const [sLastName,   setSLastName]   = useState("");
@@ -120,11 +125,39 @@ export function CheckoutPage() {
     window.scrollTo(0, 0);
   }
 
-  function handleStep2() {
+  async function handleStep2() {
     const e = validateStep2();
     if (Object.keys(e).length) { setS2Errors(e); return; }
-    setStep(3);
-    window.scrollTo(0, 0);
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/pedidos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itens: CART_ITEMS.map(item => ({
+            produto_id: item.produto_id,
+            quantidade: item.qty,
+            preco: item.price,
+          })),
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? 'Erro ao finalizar pedido');
+      }
+
+      const data = await res.json();
+      setOrderId(data.codigo);
+      setStep(3);
+      window.scrollTo(0, 0);
+    } catch (err: unknown) {
+      setSubmitError(err instanceof Error ? err.message : 'Erro ao finalizar pedido');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function formatCard(v: string) {
@@ -290,11 +323,14 @@ export function CheckoutPage() {
                 </label>
               </div>
 
+              {submitError && (
+                <p style={{ color: "#d0021b", fontSize: 12, marginTop: 12 }}>{submitError}</p>
+              )}
               <div className="checkout-btn-row">
-                <button className="checkout-back-btn" onClick={() => setStep(1)} type="button">← Voltar</button>
-                <button className="checkout-submit-btn" onClick={handleStep2}>
-                  Finalizar Pedido · ${TOTAL}
-                  <LockIcon />
+                <button className="checkout-back-btn" onClick={() => setStep(1)} type="button" disabled={submitting}>← Voltar</button>
+                <button className="checkout-submit-btn" onClick={handleStep2} disabled={submitting}>
+                  {submitting ? "Processando..." : `Finalizar Pedido · R$${TOTAL}`}
+                  {!submitting && <LockIcon />}
                 </button>
               </div>
             </div>
@@ -306,7 +342,7 @@ export function CheckoutPage() {
               <p className="checkout-confirmation__title">Pedido confirmado!</p>
               <p className="checkout-confirmation__sub">
                 Obrigado pela sua compra. Seu pedido{" "}
-                <strong>#EV-{Math.floor(Math.random() * 90000) + 10000}</strong> foi realizado e será processado em breve.
+                <strong>{orderId ?? "—"}</strong> foi realizado e será processado em breve.
               </p>
               <p className="checkout-confirmation__eta">
                 Entrega estimada: <strong>
