@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useAuth } from "../../contexts/AuthContext";
 
 function EyeIcon({ visible }: { visible: boolean }) {
   return visible ? (
@@ -44,6 +45,8 @@ function FacebookIcon() {
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -51,18 +54,24 @@ export function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.SyntheticEvent) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
     setError("");
+
     if (!email || !password) {
       setError("Preencha todos os campos.");
       return;
     }
+
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await login(email, password);
       navigate("/");
-    }, 900);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao fazer login.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
