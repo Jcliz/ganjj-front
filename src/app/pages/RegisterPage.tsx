@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useAuth } from "../../contexts/AuthContext";
 
 function EyeIcon({ visible }: { visible: boolean }) {
   return visible ? (
@@ -97,10 +98,10 @@ function Field({
 }
 
 const STRENGTHS = [
-  { label: "Fraca",      color: "#d0021b", min: 1 },
-  { label: "Moderada",   color: "#f5a623", min: 2 },
-  { label: "Boa",        color: "#7ed321", min: 3 },
-  { label: "Forte",      color: "#417505", min: 4 },
+  { label: "Fraca",    color: "#d0021b", min: 1 },
+  { label: "Moderada", color: "#f5a623", min: 2 },
+  { label: "Boa",      color: "#7ed321", min: 3 },
+  { label: "Forte",    color: "#417505", min: 4 },
 ];
 
 function passwordStrength(pw: string): number {
@@ -114,6 +115,7 @@ function passwordStrength(pw: string): number {
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -143,18 +145,17 @@ export function RegisterPage() {
     return e;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const errs = validate();
 
     const allEmpty = !firstName.trim() && !lastName.trim() && !email.trim() && !password && !confirm && !agreed;
-
     if (allEmpty) {
       setGeneralError("Preencha todos os campos corretamente.");
       setErrors({});
       return;
     }
 
+    const errs = validate();
     if (Object.keys(errs).length) {
       setErrors(errs);
       setGeneralError("");
@@ -164,10 +165,15 @@ export function RegisterPage() {
     setErrors({});
     setGeneralError("");
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      await register({ firstName, lastName, email, password });
       setSuccess(true);
-    }, 900);
+    } catch (err) {
+      setGeneralError(err instanceof Error ? err.message : "Erro ao criar conta.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (success) {
@@ -182,9 +188,9 @@ export function RegisterPage() {
               </svg>
             </div>
             <p className="register-success__title">Conta Criada</p>
-            <p className="register-success__sub">Bem-vindo, {firstName}. Sua conta Everlane está pronta.</p>
-            <button className="login-submit-btn" style={{ marginTop: 8 }} onClick={() => navigate("/login")}>
-              ENTRAR AGORA
+            <p className="register-success__sub">Bem-vindo, {firstName}. Sua conta Ganjj está pronta.</p>
+            <button className="login-submit-btn" style={{ marginTop: 8 }} onClick={() => navigate("/")}>
+              IR PARA A LOJA
             </button>
           </div>
         </main>
