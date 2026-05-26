@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { Logo } from "./Logo";
 import { navDropImg1, navDropImg2 } from "../../assets/assets";
 import { CartSidebar } from "./CartSidebar";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface NavDropdownProps {
   onClose: () => void;
@@ -109,8 +110,22 @@ interface HeaderProps {
 export function Header({ activeTab, subNavItems }: HeaderProps) {
   const navigate = useNavigate();
   useLocation();
+  const { usuario, logout } = useAuth();
   const [showMenDropdown, setShowMenDropdown] = useState(false);
   const [showCart, setShowCart] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Fecha o menu ao clicar fora
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const defaultSubNav = [
     { label: "Lookbook", path: "/lookbook", active: false },
@@ -148,18 +163,20 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
               {activeTab === "masculino" && <div className="main-nav__tab-underline" />}
             </div>
             <div className="main-nav__tab" onClick={() => navigate("/about")} style={{ cursor: "pointer" }}>Sobre-nós</div>
-            <div
-              className="main-nav__tab main-nav__tab--admin"
-              onClick={() => navigate("/admin/users")}
-              style={{ cursor: "pointer" }}
-            >
-              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Admin
-              </span>
-            </div>
+            {usuario?.is_admin && (
+              <div
+                className="main-nav__tab main-nav__tab--admin"
+                onClick={() => navigate("/admin/users")}
+                style={{ cursor: "pointer" }}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Admin
+                </span>
+              </div>
+            )}
           </div>
 
           <Logo onClick={() => navigate("/")} />
@@ -168,9 +185,80 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
             <button className="main-nav__icon-btn" onClick={() => navigate("/search")} aria-label="Search">
               <SearchIcon />
             </button>
-            <button className="main-nav__icon-btn" aria-label="Account" onClick={() => navigate("/login")}>
-              <UserIcon />
-            </button>
+
+            {/* Botão de conta — dropdown quando logado, navega para /login quando não logado */}
+            <div style={{ position: "relative" }} ref={userMenuRef}>
+              <button
+                className="main-nav__icon-btn"
+                aria-label="Account"
+                onClick={() => usuario ? setShowUserMenu(v => !v) : navigate("/login")}
+                style={usuario ? {
+                  width: "auto",
+                  height: 40,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  paddingLeft: 12,
+                  paddingRight: 12,
+                  maxWidth: 200,
+                } : undefined}
+              >
+                <UserIcon />
+                {usuario && (
+                  <span style={{
+                    fontSize: 12,
+                    color: "#262626",
+                    letterSpacing: "0.5px",
+                    maxWidth: 150,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}>
+                    {usuario.nome.split(" ")[0]}
+                  </span>
+                )}
+              </button>
+
+              {showUserMenu && usuario && (
+                <div style={{
+                  position: "absolute",
+                  top: "calc(100% + 8px)",
+                  right: 0,
+                  background: "#fff",
+                  border: "1px solid #dddbdc",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  minWidth: 180,
+                  zIndex: 300,
+                  padding: "8px 0",
+                }}>
+                  <div style={{ padding: "10px 16px 8px", borderBottom: "1px solid #f0f0f0" }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "#262626", margin: 0 }}>{usuario.nome}</p>
+                    <p style={{ fontSize: 11, color: "#737373", margin: "2px 0 0" }}>{usuario.email}</p>
+                  </div>
+                  {usuario.is_admin && (
+                    <button
+                      onClick={() => { navigate("/admin/dashboard"); setShowUserMenu(false); }}
+                      style={{ width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13, color: "#262626", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.5px" }}
+                    >
+                      Painel admin
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { navigate("/settings"); setShowUserMenu(false); }}
+                    style={{ width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13, color: "#262626", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.5px" }}
+                  >
+                    Minha conta
+                  </button>
+                  <button
+                    onClick={async () => { await logout(); setShowUserMenu(false); navigate("/"); }}
+                    style={{ width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13, color: "#d0021b", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.5px" }}
+                  >
+                    Sair
+                  </button>
+                </div>
+              )}
+            </div>
+
             <button className="main-nav__icon-btn" aria-label="Cart" onClick={() => setShowCart(true)}>
               <CartIcon />
             </button>
