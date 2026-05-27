@@ -214,7 +214,7 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                   }}>
-                    {usuario.nome.split(" ")[0]}
+                    {usuario.nome?.split(" ")[0] ?? usuario.email}
                   </span>
                 )}
               </button>
