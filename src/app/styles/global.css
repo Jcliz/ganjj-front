@@ -213,6 +213,12 @@ a {
   gap: 18px;
 }
 
+.sub-nav__tab__indicator {
+  width: 100%;
+  height: 2px;
+  background: #262626;
+}
+
 /* ---------- Dropdown Nav ---------- */
 .dropdown-nav {
   width: 100%;
