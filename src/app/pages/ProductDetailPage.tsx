@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
+import { useCart } from "../../contexts/CartContext";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   pdMain, pdThumb1, pdThumb2, pdThumb3, pdThumb4, pdThumb5,
   pdRec1, pdRec2, pdRec3, pdRec4,
@@ -51,9 +53,14 @@ const reviews = [
 
 export function ProductDetailPage() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const { usuario } = useAuth();
+  const { addItem } = useCart();
   const [selectedColor, setSelectedColor] = useState(colorSwatches[0].name);
   const [selectedSize, setSelectedSize] = useState("M");
   const [mainImage, setMainImage] = useState(galleryImages[0]);
+  const [adding, setAdding] = useState(false);
+  const [addedMsg, setAddedMsg] = useState("");
 
   return (
     <div className="page">
@@ -174,15 +181,45 @@ export function ProductDetailPage() {
           </div>
 
           {/* Add to Bag */}
-          <button
-            style={{
-              width: "100%", background: "#262626", color: "#fff",
-              padding: "16px", fontSize: 14, letterSpacing: "1.4px",
-              textAlign: "center", cursor: "pointer", border: "none", fontFamily: "inherit",
-            }}
-          >
-            ADD TO BAG
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <button
+              disabled={adding}
+              onClick={async () => {
+                if (!usuario) { navigate("/login"); return; }
+                const produtoId = Number(id);
+                if (!produtoId) return;
+                setAdding(true);
+                setAddedMsg("");
+                try {
+                  await addItem(produtoId, 1);
+                  setAddedMsg("Item adicionado ao carrinho!");
+                  setTimeout(() => setAddedMsg(""), 3000);
+                } catch (err: unknown) {
+                  setAddedMsg(err instanceof Error ? err.message : "Erro ao adicionar item.");
+                } finally {
+                  setAdding(false);
+                }
+              }}
+              style={{
+                width: "100%", background: adding ? "#737373" : "#262626", color: "#fff",
+                padding: "16px", fontSize: 14, letterSpacing: "1.4px",
+                textAlign: "center", cursor: adding ? "not-allowed" : "pointer",
+                border: "none", fontFamily: "inherit",
+              }}
+            >
+              {adding ? "ADICIONANDO..." : "ADD TO BAG"}
+            </button>
+            {addedMsg && (
+              <p style={{
+                fontSize: 12,
+                color: addedMsg.startsWith("Item") ? "#2a7a3b" : "#d0021b",
+                letterSpacing: "0.3px",
+                textAlign: "center",
+              }}>
+                {addedMsg}
+              </p>
+            )}
+          </div>
 
           {/* Perks */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

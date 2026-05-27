@@ -4,6 +4,7 @@ import { Logo } from "./Logo";
 import { navDropImg1, navDropImg2 } from "../../assets/assets";
 import { CartSidebar } from "./CartSidebar";
 import { useAuth } from "../../contexts/AuthContext";
+import { useCart } from "../../contexts/CartContext";
 
 interface NavDropdownProps {
   onClose: () => void;
@@ -109,8 +110,9 @@ interface HeaderProps {
 
 export function Header({ activeTab, subNavItems }: HeaderProps) {
   const navigate = useNavigate();
-  useLocation();
+  const location = useLocation();
   const { usuario, logout } = useAuth();
+  const { itemCount } = useCart();
   const [showMenDropdown, setShowMenDropdown] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -128,10 +130,10 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
   }, []);
 
   const defaultSubNav = [
-    { label: "Lookbook", path: "/lookbook", active: false },
-    { label: "Trocas e devoluções", path: "/returns", active: false },
-    { label: "Contato", path: "/contact", active: false },
-    { label: "Sale ganjj", sale: true, path: "/sale", active: false },
+    { label: "Lookbook", path: "/lookbook", active: location.pathname === "/lookbook" },
+    { label: "Trocas e devoluções", path: "/returns", active: location.pathname === "/returns" },
+    { label: "Contato", path: "/contact", active: location.pathname === "/contact" },
+    { label: "Sale ganjj", sale: true, path: "/sale", active: location.pathname === "/sale" },
   ];
 
   const nav = subNavItems ?? defaultSubNav;
@@ -214,7 +216,7 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                   }}>
-                    {usuario.nome.split(" ")[0]}
+                    {usuario.nome?.split(" ")[0] ?? usuario.email}
                   </span>
                 )}
               </button>
@@ -259,8 +261,33 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
               )}
             </div>
 
-            <button className="main-nav__icon-btn" aria-label="Cart" onClick={() => setShowCart(true)}>
+            <button
+              className="main-nav__icon-btn"
+              aria-label="Cart"
+              onClick={() => setShowCart(true)}
+              style={{ position: "relative" }}
+            >
               <CartIcon />
+              {itemCount > 0 && (
+                <span style={{
+                  position: "absolute",
+                  top: 2,
+                  right: 2,
+                  background: "#d0021b",
+                  color: "#fff",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  borderRadius: "50%",
+                  width: 14,
+                  height: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  letterSpacing: 0,
+                }}>
+                  {itemCount > 9 ? "9+" : itemCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -281,6 +308,7 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
             style={{ cursor: item.path ? "pointer" : "default" }}
           >
             {item.label}
+            {item.active && <div className="sub-nav__tab__indicator" />}
           </div>
         ))}
       </div>
