@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
+import { useCart } from "../../contexts/CartContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 function LockIcon() {
   return (
@@ -28,16 +30,6 @@ function ChevronRightIcon() {
 }
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
-
-const CART_ITEMS = [
-  { id: 1, produto_id: 1, name: "Camiseta boxy",   color: "Black",  colorHex: "#262626", size: "M", price: 35,  qty: 1 },
-  { id: 2, produto_id: 2, name: "Turtleneck",      color: "Forest", colorHex: "#2e4a3a", size: "S", price: 120, qty: 1 },
-  { id: 3, produto_id: 8, name: "Jeans reta",      color: "Slate",  colorHex: "#5c6b7a", size: "L", price: 98,  qty: 2 },
-];
-const SUBTOTAL = CART_ITEMS.reduce((s, i) => s + i.price * i.qty, 0);
-const SHIPPING  = 0;
-const TAX       = Math.round(SUBTOTAL * 0.0875);
-const TOTAL     = SUBTOTAL + SHIPPING + TAX;
 
 type Step = 1 | 2 | 3;
 
@@ -70,6 +62,8 @@ function Field({
 
 export function CheckoutPage() {
   const navigate = useNavigate();
+  const { usuario } = useAuth();
+  const { items, subtotal, clearCart } = useCart();
   const [step,      setStep]      = useState<Step>(1);
   const [focused,   setFocused]   = useState<string | null>(null);
   const [orderId,   setOrderId]   = useState<string | null>(null);
@@ -86,6 +80,10 @@ export function CheckoutPage() {
   const [sState,      setSState]      = useState("");
   const [sZip,        setSZip]        = useState("");
   const [shippingMethod, setShippingMethod] = useState<"normal" | "rapido">("normal");
+
+  const shippingCost = shippingMethod === "rapido" ? 12 : 0;
+  const tax          = Math.round(subtotal * 0.0875);
+  const total        = subtotal + shippingCost + tax;
   const [s1Errors,    setS1Errors]    = useState<Record<string, string>>({});
 
   const [cardName,    setCardName]    = useState("");
@@ -134,12 +132,14 @@ export function CheckoutPage() {
     try {
       const res = await fetch(`${API_URL}/api/pedidos`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          itens: CART_ITEMS.map(item => ({
+          usuario_id: usuario?.id ?? null,
+          itens: items.map(item => ({
             produto_id: item.produto_id,
-            quantidade: item.qty,
-            preco: item.price,
+            quantidade: item.quantidade,
+            preco: item.preco,
           })),
         }),
       });
@@ -151,6 +151,7 @@ export function CheckoutPage() {
 
       const data = await res.json();
       setOrderId(data.codigo);
+      await clearCart();
       setStep(3);
       window.scrollTo(0, 0);
     } catch (err: unknown) {
@@ -329,7 +330,7 @@ export function CheckoutPage() {
               <div className="checkout-btn-row">
                 <button className="checkout-back-btn" onClick={() => setStep(1)} type="button" disabled={submitting}>← Voltar</button>
                 <button className="checkout-submit-btn" onClick={handleStep2} disabled={submitting}>
-                  {submitting ? "Processando..." : `Finalizar Pedido · R$${TOTAL}`}
+                  {submitting ? "Processando..." : `Finalizar Pedido · R$${total.toFixed(2)}`}
                   {!submitting && <LockIcon />}
                 </button>
               </div>
@@ -365,17 +366,23 @@ export function CheckoutPage() {
           <p className="checkout-summary__title">Resumo do Pedido</p>
 
           <div className="checkout-summary__items">
-            {CART_ITEMS.map(item => (
+            {items.map(item => (
               <div key={item.id} className="checkout-summary__item">
                 <div
                   className="checkout-summary__swatch"
-                  style={{ background: item.colorHex, border: parseInt(item.colorHex.replace("#", ""), 16) > 0xaaaaaa ? "1px solid #dddbdc" : "none" }}
+                  style={
+                    item.imagem_url
+                      ? { backgroundImage: `url(${item.imagem_url})`, backgroundSize: "cover", backgroundPosition: "center" }
+                      : { background: "#f0f0f0" }
+                  }
                 />
                 <div style={{ flex: 1 }}>
-                  <p className="checkout-summary__item-name">{item.name}</p>
-                  <p className="checkout-summary__item-meta">{item.color} · {item.size} · Qtd {item.qty}</p>
+                  <p className="checkout-summary__item-name">{item.nome}</p>
+                  <p className="checkout-summary__item-meta">
+                    {item.cor ? `${item.cor} · ` : ""}Qtd {item.quantidade}
+                  </p>
                 </div>
-                <p className="checkout-summary__item-price">${item.price * item.qty}</p>
+                <p className="checkout-summary__item-price">R${(item.preco * item.quantidade).toFixed(2)}</p>
               </div>
             ))}
           </div>
@@ -383,19 +390,19 @@ export function CheckoutPage() {
           <div className="checkout-summary__totals">
             <div className="checkout-summary__row">
               <span>Subtotal</span>
-              <span>${SUBTOTAL}</span>
+              <span>R${subtotal.toFixed(2)}</span>
             </div>
             <div className="checkout-summary__row">
               <span>Frete</span>
-              <span>{SHIPPING === 0 ? "Grátis" : `$${SHIPPING}`}</span>
+              <span>{shippingCost === 0 ? "Grátis" : `R$${shippingCost.toFixed(2)}`}</span>
             </div>
             <div className="checkout-summary__row">
               <span>Taxa</span>
-              <span>${TAX}</span>
+              <span>R${tax.toFixed(2)}</span>
             </div>
             <div className="checkout-summary__row checkout-summary__row--total">
               <span>Total</span>
-              <span>${TOTAL}</span>
+              <span>R${total.toFixed(2)}</span>
             </div>
           </div>
 

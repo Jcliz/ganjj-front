@@ -4,6 +4,7 @@ import { Logo } from "./Logo";
 import { navDropImg1, navDropImg2 } from "../../assets/assets";
 import { CartSidebar } from "./CartSidebar";
 import { useAuth } from "../../contexts/AuthContext";
+import { useCart } from "../../contexts/CartContext";
 
 interface NavDropdownProps {
   onClose: () => void;
@@ -111,6 +112,7 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { usuario, logout } = useAuth();
+  const { itemCount } = useCart();
   const [showMenDropdown, setShowMenDropdown] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -259,8 +261,33 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
               )}
             </div>
 
-            <button className="main-nav__icon-btn" aria-label="Cart" onClick={() => setShowCart(true)}>
+            <button
+              className="main-nav__icon-btn"
+              aria-label="Cart"
+              onClick={() => setShowCart(true)}
+              style={{ position: "relative" }}
+            >
               <CartIcon />
+              {itemCount > 0 && (
+                <span style={{
+                  position: "absolute",
+                  top: 2,
+                  right: 2,
+                  background: "#d0021b",
+                  color: "#fff",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  borderRadius: "50%",
+                  width: 14,
+                  height: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  letterSpacing: 0,
+                }}>
+                  {itemCount > 9 ? "9+" : itemCount}
+                </span>
+              )}
             </button>
           </div>
         </div>

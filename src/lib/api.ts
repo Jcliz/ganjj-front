@@ -71,3 +71,44 @@ export const authApi = {
   logout: () =>
     request<{ message: string }>('/api/auth/logout', { method: 'POST' }),
 };
+
+// ─── Cesta ─────────────────────────────────────────────────────────────────
+
+export interface CestaItem {
+  id: number;
+  produto_id: number;
+  nome: string;
+  preco: number;
+  cor: string | null;
+  imagem_url: string | null;
+  quantidade: number;
+}
+
+export interface CestaResponse {
+  itens: CestaItem[];
+}
+
+export const cestaApi = {
+  get: () =>
+    request<CestaResponse>('/api/cesta'),
+
+  addItem: (produto_id: number, quantidade = 1) =>
+    request<{ message: string }>('/api/cesta/itens', {
+      method: 'POST',
+      body: JSON.stringify({ produto_id, quantidade }),
+    }),
+
+  updateItem: (produto_id: number, quantidade: number) =>
+    request<{ message: string }>(`/api/cesta/itens/${produto_id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ quantidade }),
+    }),
+
+  removeItem: (produto_id: number) =>
+    request<{ message: string }>(`/api/cesta/itens/${produto_id}`, {
+      method: 'DELETE',
+    }),
+
+  clear: () =>
+    request<{ message: string }>('/api/cesta', { method: 'DELETE' }),
+};
