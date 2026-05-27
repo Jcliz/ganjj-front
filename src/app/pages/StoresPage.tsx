@@ -25,7 +25,7 @@ const storeRows = [
 ];
 
 const aboutSubNav = [
-  { label: "About" },
+  { label: "About", path: "/about" },
   { label: "Stores", active: true },
   { label: "Factories" },
   { label: "Environmental Initiatives" },

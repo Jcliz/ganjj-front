@@ -2,12 +2,6 @@ import React, { useState } from "react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 
-const contactSubNav = [
-  { label: "Returns & Exchanges", path: "/returns" },
-  { label: "Shipping Info" },
-  { label: "Help Center" },
-  { label: "Contact Us", active: true, path: "/contact" },
-];
 
 function MapPinIcon() {
   return (
@@ -44,14 +38,14 @@ function PhoneIcon() {
   );
 }
 
-type Topic = "Order" | "Return" | "Product" | "Account" | "Press" | "Other";
-const TOPICS: Topic[] = ["Order", "Return", "Product", "Account", "Press", "Other"];
+type Topic = "Pedido" | "Troca" | "Produto" | "Conta" | "Imprensa" | "Outro";
+const TOPICS: Topic[] = ["Pedido", "Troca", "Produto", "Conta", "Imprensa", "Outro"];
 
 export function ContactPage() {
   const [name,      setName]      = useState("");
   const [email,     setEmail]     = useState("");
   const [orderNum,  setOrderNum]  = useState("");
-  const [topic,     setTopic]     = useState<Topic>("Order");
+  const [topic,     setTopic]     = useState<Topic>("Pedido");
   const [message,   setMessage]   = useState("");
   const [focused,   setFocused]   = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -59,9 +53,9 @@ export function ContactPage() {
 
   function validate() {
     const e: Record<string, string> = {};
-    if (!name.trim())    e.name    = "Your name is required.";
-    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = "A valid email is required.";
-    if (!message.trim()) e.message = "Please describe your issue.";
+    if (!name.trim())    e.name    = "Seu nome é obrigatório.";
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = "Informe um e-mail válido.";
+    if (!message.trim()) e.message = "Descreva sua dúvida ou problema.";
     return e;
   }
 
@@ -75,17 +69,17 @@ export function ContactPage() {
   if (submitted) {
     return (
       <div className="page">
-        <Header subNavItems={contactSubNav} />
+        <Header />
         <main className="contact-page">
           <div className="contact-success">
             <div className="contact-success__icon">✓</div>
-            <p className="contact-success__title">Message sent.</p>
+            <p className="contact-success__title">Mensagem enviada.</p>
             <p className="contact-success__sub">
-              Thank you, {name.split(" ")[0]}. We've received your message and will get back to you at{" "}
-              <strong>{email}</strong> within 1 business day.
+              Obrigado, {name.split(" ")[0]}. Recebemos sua mensagem e retornaremos para{" "}
+              <strong>{email}</strong> em até 1 dia útil.
             </p>
             <button className="contact-submit-btn" onClick={() => setSubmitted(false)}>
-              Send Another Message
+              Enviar outra mensagem
             </button>
           </div>
         </main>
@@ -96,14 +90,14 @@ export function ContactPage() {
 
   return (
     <div className="page">
-      <Header subNavItems={contactSubNav} />
+      <Header />
 
       <main className="contact-page">
         {/* Hero */}
         <div className="contact-hero">
-          <p className="contact-hero__label">GET IN TOUCH</p>
-          <h1 className="contact-hero__title">Contact Us</h1>
-          <p className="contact-hero__sub">We're here to help. Reach out and we'll respond within 1 business day.</p>
+          <p className="contact-hero__label">FALE COM A GANJJ</p>
+          <h1 className="contact-hero__title">Fale conosco</h1>
+          <p className="contact-hero__sub">Estamos aqui para ajudar. Entre em contato e responderemos em até 1 dia útil.</p>
         </div>
 
         <div className="contact-layout">
@@ -111,11 +105,11 @@ export function ContactPage() {
           {/* Left – info */}
           <aside className="contact-info">
             <div className="contact-info__block">
-              <p className="contact-info__label">CUSTOMER CARE</p>
+              <p className="contact-info__label">ATENDIMENTO AO CLIENTE</p>
               {[
-                { icon: <MailIcon />,    text: "care@everlane.com" },
-                { icon: <PhoneIcon />,   text: "+1 (800) 123-4567" },
-                { icon: <ClockIcon />,   text: "Mon–Fri, 9 am – 5 pm PT" },
+                { icon: <MailIcon />,    text: "contato@ganjj.com.br" },
+                { icon: <PhoneIcon />,   text: "+55 (11) 99999-0360" },
+                { icon: <ClockIcon />,   text: "Seg–Sex, 9h – 18h (BRT)" },
               ].map(r => (
                 <div key={r.text} className="contact-info__row">
                   {r.icon}
@@ -125,10 +119,10 @@ export function ContactPage() {
             </div>
 
             <div className="contact-info__block">
-              <p className="contact-info__label">HEADQUARTERS</p>
+              <p className="contact-info__label">SEDE</p>
               {[
-                { icon: <MapPinIcon />, text: "2 Embarcadero Center, Floor 8\nSan Francisco, CA 94111" },
-                { icon: <ClockIcon />, text: "Mon–Fri, 9 am – 6 pm PT" },
+                { icon: <MapPinIcon />, text: "Curitiba, PR — Brasil" },
+                { icon: <ClockIcon />, text: "Seg–Sex, 9h – 18h (BRT)" },
               ].map(r => (
                 <div key={r.text} className="contact-info__row">
                   {r.icon}
@@ -138,13 +132,9 @@ export function ContactPage() {
             </div>
 
             <div className="contact-info__block">
-              <p className="contact-info__label">QUICK LINKS</p>
+              <p className="contact-info__label">LINKS RÁPIDOS</p>
               {[
-                { label: "Returns & Exchanges", path: "/returns" },
-                { label: "Track Your Order" },
-                { label: "Size Guide" },
-                { label: "Gift Cards" },
-                { label: "Careers" },
+                { label: "Trocas e devoluções", path: "/returns" },
               ].map(l => (
                 <p key={l.label} className="contact-info__link">{l.label}</p>
               ))}
@@ -153,17 +143,17 @@ export function ContactPage() {
 
           {/* Right – form */}
           <div className="contact-form-wrap">
-            <p className="contact-form-wrap__title">Send us a message</p>
+            <p className="contact-form-wrap__title">Envie uma mensagem</p>
 
             <form className="contact-form" onSubmit={handleSubmit} noValidate>
               {/* Name + email row */}
               <div className="contact-form__row">
                 <div className="contact-form__field">
-                  <label className="contact-form__label" htmlFor="c-name">FULL NAME</label>
+                  <label className="contact-form__label" htmlFor="c-name">NOME COMPLETO</label>
                   <input
                     id="c-name"
                     className="contact-form__input"
-                    placeholder="Jane Smith"
+                    placeholder="João Silva"
                     value={name}
                     onChange={e => setName(e.target.value)}
                     onFocus={() => setFocused("name")}
@@ -173,12 +163,12 @@ export function ContactPage() {
                   {errors.name && <p className="contact-form__error">{errors.name}</p>}
                 </div>
                 <div className="contact-form__field">
-                  <label className="contact-form__label" htmlFor="c-email">EMAIL ADDRESS</label>
+                  <label className="contact-form__label" htmlFor="c-email">ENDEREÇO DE E-MAIL</label>
                   <input
                     id="c-email"
                     className="contact-form__input"
                     type="email"
-                    placeholder="jane@example.com"
+                    placeholder="voce@exemplo.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     onFocus={() => setFocused("email")}
@@ -192,7 +182,7 @@ export function ContactPage() {
               {/* Topic row */}
               <div className="contact-form__row">
                 <div className="contact-form__field">
-                  <label className="contact-form__label">TOPIC</label>
+                  <label className="contact-form__label">ASSUNTO</label>
                   <div className="contact-form__radios">
                     {TOPICS.map(t => (
                       <label key={t} className="contact-form__radio-label">
@@ -209,11 +199,11 @@ export function ContactPage() {
                   </div>
                 </div>
                 <div className="contact-form__field">
-                  <label className="contact-form__label" htmlFor="c-order">ORDER NUMBER <span style={{ color: "#737373", fontWeight: 400 }}>(optional)</span></label>
+                  <label className="contact-form__label" htmlFor="c-order">NÚMERO DO PEDIDO <span style={{ color: "#737373", fontWeight: 400 }}>(opcional)</span></label>
                   <input
                     id="c-order"
                     className="contact-form__input"
-                    placeholder="#EV-XXXXXX"
+                    placeholder="#GJ-XXXXXX"
                     value={orderNum}
                     onChange={e => setOrderNum(e.target.value)}
                     onFocus={() => setFocused("order")}
@@ -225,12 +215,12 @@ export function ContactPage() {
 
               {/* Message */}
               <div className="contact-form__field">
-                <label className="contact-form__label" htmlFor="c-msg">MESSAGE</label>
+                <label className="contact-form__label" htmlFor="c-msg">MENSAGEM</label>
                 <textarea
                   id="c-msg"
                   className="contact-form__input contact-form__textarea"
                   rows={5}
-                  placeholder="Describe your question or issue in as much detail as possible…"
+                  placeholder="Descreva sua dúvida ou problema com o máximo de detalhes possível…"
                   value={message}
                   onChange={e => setMessage(e.target.value)}
                   onFocus={() => setFocused("msg")}
@@ -241,13 +231,13 @@ export function ContactPage() {
               </div>
 
               <button type="submit" className="contact-submit-btn">
-                Send Message
+                Enviar mensagem
               </button>
 
               <p className="contact-form__note">
-                By submitting this form you agree to our{" "}
-                <span style={{ textDecoration: "underline", cursor: "pointer" }}>Privacy Policy</span>.
-                We'll never share your information with third parties.
+                Ao enviar este formulário você concorda com nossa{" "}
+                <span style={{ textDecoration: "underline", cursor: "pointer" }}>Política de Privacidade</span>.
+                Não compartilhamos suas informações com terceiros.
               </p>
             </form>
           </div>
