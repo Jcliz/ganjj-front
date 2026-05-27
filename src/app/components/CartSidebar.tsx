@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useCart } from "../../contexts/CartContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 function CloseIcon() {
   return (
@@ -47,22 +49,6 @@ function LockIcon() {
   );
 }
 
-interface CartItem {
-  id: number;
-  name: string;
-  color: string;
-  colorHex: string;
-  size: string;
-  price: number;
-  qty: number;
-}
-
-const INITIAL_CART: CartItem[] = [
-  { id: 1, name: "Camiseta boxy",   color: "Black",  colorHex: "#262626", size: "M",     price: 35,  qty: 1 },
-  { id: 2, name: "Turtleneck", color: "Forest", colorHex: "#2e4a3a", size: "S",     price: 120, qty: 1 },
-  { id: 3, name: "Jeans reta", color: "Slate",  colorHex: "#5c6b7a", size: "L",     price: 98,  qty: 2 },
-];
-
 interface CartSidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -70,26 +56,14 @@ interface CartSidebarProps {
 
 export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const navigate = useNavigate();
-  const [items, setItems] = useState<CartItem[]>(INITIAL_CART);
+  const { usuario } = useAuth();
+  const { items, loading, updateItem, removeItem, itemCount, subtotal } = useCart();
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
 
-  const subtotal  = items.reduce((sum, i) => sum + i.price * i.qty, 0);
-  const discount  = promoApplied ? Math.round(subtotal * 0.1) : 0;
-  const shipping  = subtotal >= 100 ? 0 : 8;
-  const total     = subtotal - discount + shipping;
-
-  function changeQty(id: number, delta: number) {
-    setItems(prev =>
-      prev
-        .map(i => i.id === id ? { ...i, qty: i.qty + delta } : i)
-        .filter(i => i.qty > 0)
-    );
-  }
-
-  function removeItem(id: number) {
-    setItems(prev => prev.filter(i => i.id !== id));
-  }
+  const discount = promoApplied ? Math.round(subtotal * 0.1) : 0;
+  const shipping = subtotal >= 100 ? 0 : 8;
+  const total = subtotal - discount + shipping;
 
   function applyPromo() {
     if (promoCode.trim().toUpperCase() === "GANJJ10") setPromoApplied(true);
@@ -103,24 +77,33 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   return (
     <>
       {isOpen && (
-        <div
-          className="cart-backdrop"
-          onClick={onClose}
-        />
+        <div className="cart-backdrop" onClick={onClose} />
       )}
 
       <div className={`cart-drawer${isOpen ? " cart-drawer--open" : ""}`}>
         <div className="cart-drawer__head">
           <p className="cart-drawer__title">
             Seu carrinho
-            {items.length > 0 && (
-              <span className="cart-drawer__count"> ({items.reduce((s, i) => s + i.qty, 0)})</span>
+            {itemCount > 0 && (
+              <span className="cart-drawer__count"> ({itemCount})</span>
             )}
           </p>
           <button className="cart-drawer__close" onClick={onClose}><CloseIcon /></button>
         </div>
 
-        {items.length === 0 ? (
+        {!usuario ? (
+          <div className="cart-empty">
+            <p className="cart-empty__title">Faça login para ver seu carrinho.</p>
+            <p className="cart-empty__sub">Seus itens ficam salvos na sua conta.</p>
+            <button className="cart-cta" onClick={() => { onClose(); navigate("/login"); }}>
+              Entrar
+            </button>
+          </div>
+        ) : loading ? (
+          <div className="cart-empty">
+            <p className="cart-empty__sub">Carregando...</p>
+          </div>
+        ) : items.length === 0 ? (
           <div className="cart-empty">
             <p className="cart-empty__title">Seu carrinho está vazio.</p>
             <p className="cart-empty__sub">Adicione itens para começar.</p>
@@ -146,24 +129,39 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                 <div key={item.id} className="cart-item">
                   <div
                     className="cart-item__thumb"
-                    style={{ background: item.colorHex, border: parseInt(item.colorHex.replace("#", ""), 16) > 0xaaaaaa ? "1px solid #dddbdc" : "none" }}
+                    style={
+                      item.imagem_url
+                        ? { backgroundImage: `url(${item.imagem_url})`, backgroundSize: "cover", backgroundPosition: "center" }
+                        : { background: "#f0f0f0" }
+                    }
                   />
                   <div className="cart-item__info">
-                    <p className="cart-item__name">{item.name}</p>
-                    <p className="cart-item__meta">{item.color} · {item.size}</p>
+                    <p className="cart-item__name">{item.nome}</p>
+                    {item.cor && (
+                      <p className="cart-item__meta">{item.cor}</p>
+                    )}
                     <div className="cart-item__bottom">
                       <div className="cart-qty">
-                        <button className="cart-qty__btn" onClick={() => changeQty(item.id, -1)}>
+                        <button
+                          className="cart-qty__btn"
+                          onClick={() => updateItem(item.produto_id, item.quantidade - 1)}
+                        >
                           <MinusIcon />
                         </button>
-                        <span className="cart-qty__val">{item.qty}</span>
-                        <button className="cart-qty__btn" onClick={() => changeQty(item.id, 1)}>
+                        <span className="cart-qty__val">{item.quantidade}</span>
+                        <button
+                          className="cart-qty__btn"
+                          onClick={() => updateItem(item.produto_id, item.quantidade + 1)}
+                        >
                           <PlusIcon />
                         </button>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <p className="cart-item__price">R${(item.price * item.qty).toFixed(0)}</p>
-                        <button className="cart-item__remove" onClick={() => removeItem(item.id)}>
+                        <p className="cart-item__price">R${(item.preco * item.quantidade).toFixed(0)}</p>
+                        <button
+                          className="cart-item__remove"
+                          onClick={() => removeItem(item.produto_id)}
+                        >
                           <TrashIcon />
                         </button>
                       </div>
