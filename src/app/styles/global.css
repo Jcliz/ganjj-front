@@ -2590,9 +2590,10 @@ a {
   background: #1a1a1a;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
   position: sticky;
   top: 0;
+  overflow: hidden;
 }
 
 .admin-sidebar__logo {
@@ -2622,6 +2623,7 @@ a {
   padding: 16px 0;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .admin-sidebar__item {

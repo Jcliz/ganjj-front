@@ -6,10 +6,7 @@ import { useNavigate } from "react-router";
 export type AdminNavItem =
   | "dashboard"
   | "users"
-  | "products"
-  | "orders"
-  | "analytics"
-  | "settings";
+  | "products";
 
 interface AdminSidebarProps {
   activeItem?: AdminNavItem;
@@ -97,12 +94,9 @@ const NAV_ITEMS: {
   path: string;
   icon: React.ReactNode;
 }[] = [
-  { key: "dashboard", label: "Dashboard",  path: "/admin/dashboard", icon: <DashboardIcon /> },
-  { key: "users",     label: "Users",      path: "/admin/users",     icon: <UsersIcon />     },
-  { key: "products",  label: "Products",   path: "/admin/products",  icon: <ProductsIcon />  },
-  { key: "orders",    label: "Orders",     path: "/",                icon: <OrdersIcon />    },
-  { key: "analytics", label: "Analytics",  path: "/",                icon: <AnalyticsIcon /> },
-  { key: "settings",  label: "Settings",   path: "/settings",        icon: <SettingsIcon />  },
+  { key: "dashboard", label: "Dashboard", path: "/admin/dashboard", icon: <AnalyticsIcon /> },
+  { key: "users",     label: "Usuários",  path: "/admin/users",     icon: <UsersIcon />     },
+  { key: "products",  label: "Produtos",  path: "/admin/products",  icon: <ProductsIcon />  },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -114,8 +108,8 @@ export function AdminSidebar({ activeItem }: AdminSidebarProps) {
     <aside className="admin-sidebar">
       {/* Logo / brand */}
       <div className="admin-sidebar__logo" onClick={() => navigate("/")}>
-        <span className="admin-sidebar__logo-text">EVERLANE</span>
-        <span className="admin-sidebar__logo-badge">ADMIN PANEL</span>
+        <span className="admin-sidebar__logo-text">GANJJ</span>
+        <span className="admin-sidebar__logo-badge">PAINEL ADMIN</span>
       </div>
 
       {/* Navigation */}
@@ -136,7 +130,7 @@ export function AdminSidebar({ activeItem }: AdminSidebarProps) {
       <div className="admin-sidebar__footer">
         <button className="admin-sidebar__back" onClick={() => navigate("/")}>
           <ArrowLeftIcon />
-          Back to Store
+          Voltar à Loja
         </button>
       </div>
     </aside>
