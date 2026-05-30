@@ -88,6 +88,29 @@ export interface CestaResponse {
   itens: CestaItem[];
 }
 
+// ─── Produto ───────────────────────────────────────────────────────────────
+
+export interface Produto {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  preco: number;
+  estoque: number;
+  cor: string | null;
+  status: boolean;
+  imagem_url: string | null;
+  popular: boolean;
+  feminino: boolean;
+  criado_em: string;
+}
+
+export const produtoApi = {
+  getAll: () => request<Produto[]>('/api/produtos'),
+  getById: (id: number) => request<Produto>(`/api/produtos/${id}`),
+};
+
+// ─── Cesta ─────────────────────────────────────────────────────────────────
+
 export const cestaApi = {
   get: () =>
     request<CestaResponse>('/api/cesta'),

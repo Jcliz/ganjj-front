@@ -1,232 +1,307 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../contexts/AuthContext";
-import {
-  pdMain, pdThumb1, pdThumb2, pdThumb3, pdThumb4, pdThumb5,
-  pdRec1, pdRec2, pdRec3, pdRec4,
-} from "../../assets/assets";
+import { produtoApi } from "../../lib/api";
+import type { Produto } from "../../lib/api";
 
-function StarFull({ size = 12 }: { size?: number }) {
+// TODO: AWS S3 — Instalar e configurar o SDK:
+//   npm install @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
+//
+// import { S3Client, GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+// import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+//
+// const s3 = new S3Client({ region: import.meta.env.VITE_AWS_REGION });
+//
+// async function resolverUrlS3(chave: string): Promise<string> {
+//   const cmd = new GetObjectCommand({ Bucket: import.meta.env.VITE_AWS_S3_BUCKET, Key: chave });
+//   return getSignedUrl(s3, cmd, { expiresIn: 3600 });
+// }
+//
+// async function listarImagensProduto(produtoId: number): Promise<string[]> {
+//   const cmd = new ListObjectsV2Command({
+//     Bucket: import.meta.env.VITE_AWS_S3_BUCKET,
+//     Prefix: `produtos/${produtoId}/`,
+//   });
+//   const res = await s3.send(cmd);
+//   return Promise.all((res.Contents ?? []).map(obj => resolverUrlS3(obj.Key!)));
+// }
+
+function resolverImagem(imagem_url: string | null): string | null {
+  if (!imagem_url) return null;
+  // TODO: AWS S3 — Se imagem_url for uma chave S3 (ex: "produtos/42/capa.jpg"),
+  // substituir esta linha por: return resolverUrlS3(imagem_url);
+  return imagem_url;
+}
+
+
+function PlaceholderImagem({ tamanho = 48 }: { tamanho?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 14 14" fill="none">
-      <path d="M7 1L8.5 5H13L9.5 7.5L11 11.5L7 9L3 11.5L4.5 7.5L1 5H5.5L7 1Z" fill="#000" />
-    </svg>
+    <div style={{
+      position: "absolute", inset: 0, background: "#f5f4f4",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      justifyContent: "center", gap: 8,
+    }}>
+      <svg width={tamanho} height={tamanho} viewBox="0 0 48 48" fill="none">
+        <rect x="4" y="8" width="40" height="32" rx="2" stroke="#dddbdc" strokeWidth="1.5" />
+        <circle cx="17" cy="21" r="4" stroke="#dddbdc" strokeWidth="1.5" />
+        <path d="M4 36l10-8 8 6 8-10 14 12" stroke="#dddbdc" strokeWidth="1.5" strokeLinejoin="round" />
+      </svg>
+      {tamanho >= 40 && (
+        <p style={{ fontSize: 11, color: "#b0aeae", letterSpacing: "0.3px" }}>Sem imagem</p>
+      )}
+    </div>
   );
 }
 
-const galleryImages = [pdMain, pdThumb1, pdThumb2, pdThumb3, pdThumb4, pdThumb5];
+function ProdutoNaoEncontrado() {
+  const navigate = useNavigate();
+  return (
+    <div className="page">
+      <Header activeTab="men" />
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        gap: 24, padding: "80px 40px",
+      }}>
+        <svg width={64} height={64} viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="31" stroke="#dddbdc" strokeWidth="1.5" />
+          <path d="M20 20l24 24M44 20L20 44" stroke="#dddbdc" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center", textAlign: "center" }}>
+          <p style={{ fontSize: 20, lineHeight: "28px", color: "#262626" }}>Produto não encontrado</p>
+          <p style={{ fontSize: 14, color: "#737373", letterSpacing: "0.2px" }}>
+            O produto que você procura não existe ou foi removido.
+          </p>
+        </div>
+        <button
+          onClick={() => navigate("/listing")}
+          style={{
+            background: "#262626", color: "#fff", padding: "14px 32px",
+            fontSize: 12, letterSpacing: "1.2px", border: "none",
+            cursor: "pointer", fontFamily: "inherit",
+          }}
+        >
+          VER TODOS OS PRODUTOS
+        </button>
+      </div>
+      <Footer />
+    </div>
+  );
+}
 
-const recommendedProducts = [
-  { img: pdRec1, name: "The OG-Fit LT-Sleeve Crew", price: "$40" },
-  { img: pdRec2, name: "The Waffle Long-Sleeve Crew", price: "$60" },
-  { img: pdRec3, name: "The Hoodie Relaxed Jean", price: "$88" },
-  { img: pdRec4, name: "The Rib Long-Sleeve Tee", price: "$60" },
-];
+const tamanhos = ["XS", "S", "M", "L", "XL", "XXL"];
 
-const colorSwatches = [
-  { name: "Dark Olive", hex: "#4a4a2a" },
-  { name: "Navy", hex: "#1a1a5e" },
-  { name: "Brown", hex: "#5a3825" },
-];
 
-const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
-
-const reviews = [
-  {
-    author: "ElizabethMillys",
-    date: "5 days ago",
-    rating: 5,
-    text: "Fit and feel is very attractive sir",
-    meta: "Height: 5'4\" · Weight: 135 lb · Size Purchased: 11 · 13 to 14",
-  },
-  {
-    author: "Anonymous",
-    date: "4 days ago",
-    rating: 5,
-    text: "Great quality, worth every penny. But for fit, you'll need a large pants and it is perfect. It does run a bit oversized which is great.",
-    meta: "Height: 5'8\" · Weight: 160 lb · Size Purchased: L",
-  },
-];
+function formatarPreco(valor: number): string {
+  return `R$ ${valor.toFixed(2).replace(".", ",")}`;
+}
 
 export function ProductDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { usuario } = useAuth();
   const { addItem } = useCart();
-  const [selectedColor, setSelectedColor] = useState(colorSwatches[0].name);
-  const [selectedSize, setSelectedSize] = useState("M");
-  const [mainImage, setMainImage] = useState(galleryImages[0]);
-  const [adding, setAdding] = useState(false);
-  const [addedMsg, setAddedMsg] = useState("");
+
+  const [produto, setProduto] = useState<Produto | null>(null);
+  const [recomendados, setRecomendados] = useState<Produto[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(false);
+
+  // TODO: AWS S3 — Substituir por listarImagensProduto(produto.id)
+  const [imagemPrincipal, setImagemPrincipal] = useState<string | null>(null);
+
+  const [tamanhoSelecionado, setTamanhoSelecionado] = useState("M");
+  const [adicionando, setAdicionando] = useState(false);
+  const [msgAdicionado, setMsgAdicionado] = useState("");
+
+  useEffect(() => {
+    if (!id) return;
+    setCarregando(true);
+    setErro(false);
+
+    produtoApi
+      .getById(Number(id))
+      .then((p) => {
+        setProduto(p);
+
+        const url = resolverImagem(p.imagem_url);
+        setImagemPrincipal(url);
+
+        produtoApi
+          .getAll()
+          .then((todos) => {
+            const outros = todos.filter((t) => t.id !== p.id && t.status).slice(0, 4);
+            setRecomendados(outros);
+          })
+          .catch(() => {});
+      })
+      .catch(() => setErro(true))
+      .finally(() => setCarregando(false));
+  }, [id]);
+
+  if (carregando) {
+    return (
+      <div className="page">
+        <Header activeTab="men" />
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 40px" }}>
+          <p style={{ fontSize: 14, color: "#737373", letterSpacing: "0.3px" }}>Carregando produto...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (erro || !produto) return <ProdutoNaoEncontrado />;
 
   return (
     <div className="page">
-      <Header activeTab="men" />
+      <Header activeTab={produto.feminino ? "women" : "men"} />
 
       {/* Breadcrumb */}
       <div style={{ padding: "12px 40px", borderBottom: "1px solid #dddbdc" }}>
         <p style={{ fontSize: 12, color: "#737373", letterSpacing: "0.2px" }}>
-          <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>Home</span>
+          <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>Início</span>
           {" > "}
-          <span style={{ cursor: "pointer" }} onClick={() => navigate("/listing")}>Men</span>
-          {" > Outerwear"}
+          <span style={{ cursor: "pointer" }} onClick={() => navigate("/listing")}>
+            {produto.feminino ? "Feminino" : "Masculino"}
+          </span>
+          {" > "}
+          {produto.nome}
         </p>
       </div>
 
-      {/* Main Product Area */}
+      {/* Área principal */}
       <div style={{ display: "flex", gap: 40, padding: "0 0 60px", width: "100%", alignItems: "flex-start" }}>
 
-        {/* Gallery */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8, padding: "24px 0 0 40px" }}>
-          {/* Main image */}
-          <div style={{ width: "100%", aspectRatio: "3/4", position: "relative", overflow: "hidden", background: "#f5f4f4" }}>
-            <img
-              src={mainImage}
-              alt="Product"
-              style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          </div>
-          {/* Thumbnails */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-            {galleryImages.slice(1).map((img, i) => (
-              <div
-                key={i}
-                onClick={() => setMainImage(img)}
-                style={{
-                  width: "100%",
-                  aspectRatio: "3/4",
-                  position: "relative",
-                  overflow: "hidden",
-                  background: "#f5f4f4",
-                  cursor: "pointer",
-                  border: mainImage === img ? "2px solid #262626" : "2px solid transparent",
-                }}
-              >
-                <img
-                  src={img}
-                  alt={`View ${i + 2}`}
-                  style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              </div>
-            ))}
+        {/* Imagem do produto */}
+        <div style={{ flex: 1, display: "flex", justifyContent: "center", padding: "24px 0 0 40px" }}>
+          <div style={{ maxWidth: "45vw", width: "100%", aspectRatio: "3/4", maxHeight: "70vh", position: "relative", overflow: "hidden", background: "#f5f4f4" }}>
+            {imagemPrincipal ? (
+              <img
+                src={imagemPrincipal}
+                alt={produto.nome}
+                style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "contain" }}
+              />
+            ) : (
+              <PlaceholderImagem tamanho={64} />
+            )}
           </div>
         </div>
 
-        {/* Product Info */}
-        <div style={{ width: 340, flexShrink: 0, padding: "40px 40px 0 0", display: "flex", flexDirection: "column", gap: 20 }}>
-          <p style={{ fontSize: 12, color: "#d0021b", letterSpacing: "0.5px" }}>30% off</p>
+        {/* Informações do produto */}
+        <div style={{ width: 340, flexShrink: 0, padding: "40px 40px 0 0", display: "flex", flexDirection: "column", gap: 20, position: "sticky", top: 0 }}>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <p style={{ fontSize: 20, lineHeight: "28px", color: "#262626" }}>
-              The ReWoole Oversized Shirt Jacket
-            </p>
+            <p style={{ fontSize: 20, lineHeight: "28px", color: "#262626" }}>{produto.nome}</p>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <span style={{ color: "#737373", fontSize: 16, textDecoration: "line-through" }}>$198</span>
-              <span style={{ color: "#262626", fontSize: 16, fontWeight: 600 }}>$167</span>
+              <span style={{ color: "#262626", fontSize: 16, fontWeight: 600 }}>
+                {formatarPreco(produto.preco)}
+              </span>
             </div>
-            <div style={{ display: "flex", gap: 2 }}>
-              {[0, 1, 2, 3, 4].map(i => <StarFull key={i} size={12} />)}
-            </div>
+
           </div>
 
-          {/* Color */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <p style={{ fontSize: 12, color: "#262626", letterSpacing: "0.2px" }}>
-              Color: <strong>{selectedColor}</strong>
-            </p>
-            <div style={{ display: "flex", gap: 8 }}>
-              {colorSwatches.map(({ name, hex }) => (
+          {/* Cor */}
+          {produto.cor && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <p style={{ fontSize: 12, color: "#262626", letterSpacing: "0.2px" }}>
+                Cor: <strong>{produto.cor}</strong>
+              </p>
+              <div style={{ display: "flex", gap: 8 }}>
                 <div
-                  key={name}
-                  onClick={() => setSelectedColor(name)}
-                  title={name}
+                  title={produto.cor}
                   style={{
                     width: 30, height: 30, borderRadius: "50%",
-                    background: hex, cursor: "pointer",
-                    border: selectedColor === name ? "2px solid #262626" : "2px solid transparent",
-                    outline: selectedColor === name ? "1px solid #fff" : "none",
+                    background: produto.cor, cursor: "default",
+                    border: "2px solid #262626",
+                    outline: "1px solid #fff",
                     outlineOffset: -4,
                   }}
                 />
-              ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Size */}
+          {/* Tamanho */}
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#262626", letterSpacing: "0.2px" }}>
-              <span>Size</span>
-              <span style={{ color: "#737373", textDecoration: "underline", cursor: "pointer" }}>Size Guide</span>
+              <span>Tamanho</span>
+              <span style={{ color: "#737373", textDecoration: "underline", cursor: "pointer" }}>Guia de Tamanhos</span>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {sizes.map(size => (
+              {tamanhos.map(tam => (
                 <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
+                  key={tam}
+                  onClick={() => setTamanhoSelecionado(tam)}
                   style={{
-                    border: `1px solid ${selectedSize === size ? "#262626" : "#dddbdc"}`,
-                    padding: "8px 12px", fontSize: 12, letterSpacing: "0.2px", cursor: "pointer",
-                    background: selectedSize === size ? "#262626" : "#fff",
-                    color: selectedSize === size ? "#fff" : "#262626",
+                    border: `1px solid ${tamanhoSelecionado === tam ? "#262626" : "#dddbdc"}`,
+                    padding: "8px 12px", fontSize: 12, letterSpacing: "0.2px",
+                    cursor: "pointer",
+                    background: tamanhoSelecionado === tam ? "#262626" : "#fff",
+                    color: tamanhoSelecionado === tam ? "#fff" : "#262626",
                     fontFamily: "inherit",
                   }}
                 >
-                  {size}
+                  {tam}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Add to Bag */}
+          {/* Estoque esgotado */}
+          {produto.estoque === 0 && (
+            <p style={{ fontSize: 12, color: "#d0021b", letterSpacing: "0.3px" }}>Produto indisponível</p>
+          )}
+
+          {/* Adicionar ao carrinho */}
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <button
-              disabled={adding}
+              disabled={adicionando || produto.estoque === 0}
               onClick={async () => {
                 if (!usuario) { navigate("/login"); return; }
-                const produtoId = Number(id);
-                if (!produtoId) return;
-                setAdding(true);
-                setAddedMsg("");
+                setAdicionando(true);
+                setMsgAdicionado("");
                 try {
-                  await addItem(produtoId, 1);
-                  setAddedMsg("Item adicionado ao carrinho!");
-                  setTimeout(() => setAddedMsg(""), 3000);
+                  await addItem(produto.id, 1);
+                  setMsgAdicionado("Item adicionado ao carrinho!");
+                  setTimeout(() => setMsgAdicionado(""), 3000);
                 } catch (err: unknown) {
-                  setAddedMsg(err instanceof Error ? err.message : "Erro ao adicionar item.");
+                  setMsgAdicionado(err instanceof Error ? err.message : "Erro ao adicionar item.");
                 } finally {
-                  setAdding(false);
+                  setAdicionando(false);
                 }
               }}
               style={{
-                width: "100%", background: adding ? "#737373" : "#262626", color: "#fff",
-                padding: "16px", fontSize: 14, letterSpacing: "1.4px",
-                textAlign: "center", cursor: adding ? "not-allowed" : "pointer",
+                width: "100%",
+                background: adicionando || produto.estoque === 0 ? "#737373" : "#262626",
+                color: "#fff", padding: "16px", fontSize: 14, letterSpacing: "1.4px",
+                textAlign: "center",
+                cursor: adicionando || produto.estoque === 0 ? "not-allowed" : "pointer",
                 border: "none", fontFamily: "inherit",
               }}
             >
-              {adding ? "ADICIONANDO..." : "ADD TO BAG"}
+              {adicionando ? "ADICIONANDO..." : produto.estoque === 0 ? "INDISPONÍVEL" : "ADICIONAR AO CARRINHO"}
             </button>
-            {addedMsg && (
+            {msgAdicionado && (
               <p style={{
                 fontSize: 12,
-                color: addedMsg.startsWith("Item") ? "#2a7a3b" : "#d0021b",
-                letterSpacing: "0.3px",
-                textAlign: "center",
+                color: msgAdicionado.startsWith("Item") ? "#2a7a3b" : "#d0021b",
+                letterSpacing: "0.3px", textAlign: "center",
               }}>
-                {addedMsg}
+                {msgAdicionado}
               </p>
             )}
           </div>
 
-          {/* Perks */}
+          {/* Benefícios */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[
-              { icon: "📦", text: "Free Shipping on orders over $100" },
-              { icon: "↩", text: "Easy Returns — 30 day window when you sign up" },
-              { icon: "🌿", text: "Get it in 3–4 business days" },
+              { icon: "📦", text: "Frete grátis em pedidos acima de R$100" },
+              { icon: "↩", text: "Devoluções fáceis — 30 dias ao criar sua conta" },
+              { icon: "🌿", text: "Receba em 3–4 dias úteis" },
             ].map(({ icon, text }) => (
               <div key={text} style={{ display: "flex", gap: 12, alignItems: "flex-start", fontSize: 12, color: "#262626", letterSpacing: "0.2px" }}>
                 <span>{icon}</span>
@@ -235,94 +310,47 @@ export function ProductDetailPage() {
             ))}
           </div>
 
-          {/* Description */}
-          <div style={{ borderTop: "1px solid #dddbdc", paddingTop: 16 }}>
-            <p style={{ fontSize: 14, lineHeight: "22px", color: "#262626", letterSpacing: "0.2px" }}>
-              Part shirt, part jacket, all style. About your new cross-utility staple: The ReWoole Oversized Shirt Jacket
-              combines best-in-class fit and versatile function. With belt loop front chest pockets and a button-up placket,
-              it's a wardrobe must.
-            </p>
-          </div>
-
-          {/* Model + Fit */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 12, color: "#262626", borderTop: "1px solid #dddbdc", paddingTop: 16 }}>
-            <div style={{ display: "flex", gap: 24 }}>
-              <div><p style={{ color: "#737373" }}>Model</p><p>Model is 6'1", wearing a M</p></div>
-              <div><p style={{ color: "#737373" }}>Fit</p><p>Boyfriend/Boxy fit</p></div>
+          {/* Descrição */}
+          {produto.descricao && (
+            <div style={{ borderTop: "1px solid #dddbdc", paddingTop: 16 }}>
+              <p style={{ fontSize: 14, lineHeight: "22px", color: "#262626", letterSpacing: "0.2px" }}>
+                {produto.descricao}
+              </p>
             </div>
+          )}
+
+          {/* Estoque disponível */}
+          <div style={{ borderTop: "1px solid #dddbdc", paddingTop: 16, fontSize: 12, color: "#262626" }}>
+            <p style={{ color: "#737373", marginBottom: 4 }}>Estoque disponível</p>
+            <p>{produto.estoque} unidade{produto.estoque !== 1 ? "s" : ""}</p>
           </div>
         </div>
       </div>
 
-      {/* Recommended */}
-      <div className="recommended-section" style={{ borderTop: "1px solid #dddbdc" }}>
-        <p className="recommended-section__title">Recommended Products</p>
-        <div className="recommended-grid">
-          {recommendedProducts.map(({ img, name, price }) => (
-            <div key={name} className="recommended-card" onClick={() => navigate("/product/1")}>
-              <div className="recommended-card__img">
-                <img src={img} alt={name} />
-              </div>
-              <p className="recommended-card__name">{name}</p>
-              <p className="recommended-card__price">{price}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Reviews */}
-      <div className="reviews-section">
-        <p className="reviews-section__title">Reviews</p>
-        <div style={{ display: "flex", gap: 40, marginBottom: 32, padding: "20px 0", borderTop: "1px solid #dddbdc", borderBottom: "1px solid #dddbdc" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
-            <p style={{ fontSize: 32, fontWeight: 600, color: "#262626" }}>5.0</p>
-            <div style={{ display: "flex", gap: 2 }}>{[0, 1, 2, 3, 4].map(i => <StarFull key={i} size={14} />)}</div>
-            <p style={{ fontSize: 12, color: "#737373" }}>Overall Rating</p>
-          </div>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-            {[5, 4, 3, 2, 1].map(rating => (
-              <div key={rating} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <span style={{ fontSize: 12, color: "#737373", width: 8 }}>{rating}</span>
-                <div style={{ flex: 1, height: 4, background: "#f0f0f0", borderRadius: 2, overflow: "hidden" }}>
-                  <div style={{ width: rating === 5 ? "90%" : "5%", height: "100%", background: "#262626", borderRadius: 2 }} />
+      {/* Produtos recomendados */}
+      {recomendados.length > 0 && (
+        <div className="recommended-section" style={{ borderTop: "1px solid #dddbdc" }}>
+          <p className="recommended-section__title">Produtos Recomendados</p>
+          <div className="recommended-grid">
+            {recomendados.map((rec) => {
+              const recImg = resolverImagem(rec.imagem_url);
+              return (
+                <div key={rec.id} className="recommended-card" onClick={() => navigate(`/product/${rec.id}`)}>
+                  <div className="recommended-card__img">
+                    {recImg ? (
+                      <img src={recImg} alt={rec.nome} />
+                    ) : (
+                      <PlaceholderImagem tamanho={32} />
+                    )}
+                  </div>
+                  <p className="recommended-card__name">{rec.nome}</p>
+                  <p className="recommended-card__price">{formatarPreco(rec.preco)}</p>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
-
-        {reviews.map(({ author, date, rating, text, meta }) => (
-          <div key={author} className="review-card">
-            <div className="review-card__header">
-              <p className="review-card__author">{author}</p>
-              <p className="review-card__date">{date}</p>
-            </div>
-            <div style={{ display: "flex", gap: 2 }}>{Array.from({ length: rating }).map((_, i) => <StarFull key={i} size={12} />)}</div>
-            <p className="review-card__text">{text}</p>
-            <p className="review-card__meta">{meta}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Transparent Pricing */}
-      <div className="transparent-pricing">
-        <p className="transparent-pricing__title">Transparent Pricing</p>
-        <div className="pricing-breakdown">
-          {[
-            { label: "Materials", value: "$65.77" },
-            { label: "Hardware", value: "$3.05" },
-            { label: "Labor", value: "$26.34" },
-            { label: "Duties", value: "$8.18" },
-            { label: "Transport", value: "$5.67" },
-          ].map(({ label, value }) => (
-            <div key={label} className="pricing-item">
-              <div className="pricing-item__icon" style={{ background: "#e0e0e0", borderRadius: 4 }} />
-              <p className="pricing-item__label">{label}</p>
-              <p className="pricing-item__value">{value}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
 
       <Footer />
     </div>
