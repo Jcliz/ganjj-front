@@ -1,188 +1,234 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import {
-  listProd1, listProd2, listProd3, listProd4, listProd5,
-  listProd6, listProd7, listProd8, listProd9,
-} from "../../assets/assets";
+import { listProd1 } from "../../assets/assets";
+import { produtosApi, type Produto } from "../../lib/api";
 
-const products = [
-  { id: "1", img: listProd1, name: "The Cloud Relaxed Cardigan", price: "$132", sale: "$132", badge: "30% off", color: "Black", swatches: ["#1a1a1a", "#1a3a6b", "#5a3825"] },
-  { id: "2", img: listProd2, name: "The Organic Cotton Long-Sleeve Turtleneck", price: "$44", sale: "$35", badge: "30% off", color: "Black", tags: ["ORGANIC COTTON"] },
-  { id: "3", img: listProd3, name: "The Wool Flannel Pant", price: "$118", sale: "$87", badge: "30% off", color: "Heather Charcoal", tags: ["RENEWED MATERIALS", "CLEANER CHEMISTRY"] },
-  { id: "4", img: listProd4, name: "The Cloud Relaxed Cardigan", price: "$132", sale: "$132", badge: "30% off", color: "Black", swatches: ["#1a1a1a", "#1a3a6b", "#5a3825", "#000"] },
-  { id: "5", img: listProd5, name: "The Organic Cotton Long-Sleeve Turtleneck", price: "$44", sale: "$35", badge: "30% off", color: "Black", tags: ["ORGANIC COTTON"] },
-  { id: "6", img: listProd6, name: "The Wool Flannel Pant", price: "$118", sale: "$87", badge: "30% off", color: "Heather Charcoal", tags: ["RENEWED MATERIALS", "CLEANER CHEMISTRY"] },
-  { id: "7", img: listProd7, name: "The Cloud Relaxed Cardigan", price: "$132", sale: "$132", badge: "30% off", color: "Black", swatches: ["#1a1a1a", "#777", "#5a3825", "#c8a400"] },
-  { id: "8", img: listProd8, name: "The Organic Cotton Long-Sleeve Turtleneck", price: "$44", sale: "$35", badge: "30% off", color: "Black", tags: ["ORGANIC COTTON"] },
-  { id: "9", img: listProd9, name: "The Wool Flannel Pant", price: "$118", sale: "$87", badge: "30% off", color: "Heather Charcoal", tags: ["RENEWED MATERIALS", "CLEANER CHEMISTRY"] },
+const COR_PALETTE: { nome: string; label: string; hex: string }[] = [
+  { nome: "Black",  label: "Preto",    hex: "#1a1a1a" },
+  { nome: "Blue",   label: "Azul",     hex: "#1a3a6b" },
+  { nome: "Brown",  label: "Marrom",   hex: "#5a3825" },
+  { nome: "Green",  label: "Verde",    hex: "#2d4a2d" },
+  { nome: "Grey",   label: "Cinza",    hex: "#888" },
+  { nome: "Orange", label: "Laranja",  hex: "#d46b1a" },
+  { nome: "Pink",   label: "Rosa",     hex: "#e8a5b0" },
+  { nome: "Red",    label: "Vermelho", hex: "#c0392b" },
+  { nome: "Tan",    label: "Bege",     hex: "#c8a87a" },
+  { nome: "Sage",   label: "Sálvia",   hex: "#8a9e8a" },
+  { nome: "Navy",   label: "Marinho",  hex: "#1c2d4a" },
+  { nome: "Cream",  label: "Creme",    hex: "#f5f0e8" },
 ];
 
-const categories = [
-  "Everyone - All Gender Collection",
-  "Accessories & Gift Cards",
-  "Backpacks, Weekenders & Duffle Bags",
-  "Dress Shirts & Button Downs",
-  "Hoodies & Sweatshirts",
+const subNav = [
+  { label: "Sobre nós" },
+  { label: "Lojas" },
+  { label: "Sale ganjj" },
+  { label: "Lookbook" },
+  { label: "Trocas e devoluções" },
+  { label: "Contato" },
 ];
 
-const colors = [
-  { name: "Black", hex: "#1a1a1a" },
-  { name: "Blue", hex: "#1a3a6b" },
-  { name: "Brown", hex: "#5a3825" },
-  { name: "Green", hex: "#2d4a2d" },
-  { name: "Grey", hex: "#888" },
-  { name: "Orange", hex: "#d46b1a" },
-  { name: "Pink", hex: "#e8a5b0" },
-  { name: "Red", hex: "#c0392b" },
-  { name: "Tan", hex: "#c8a87a" },
-];
+type Categoria = "todos" | "feminino" | "masculino";
 
-const menSubNav = [
-  { label: "About" },
-  { label: "Stores" },
-  { label: "Factories" },
-  { label: "Environmental Initiatives" },
-  { label: "Our Carbon Commitment" },
-  { label: "Annual Impact Report" },
-  { label: "Cleaner Fashion" },
-];
+const LABEL_CATEGORIA: Record<Categoria, string> = {
+  todos:     "Todos",
+  feminino:  "Feminino",
+  masculino: "Masculino",
+};
+
+function fmtPreco(n: number) {
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 
 export function ListingPage() {
   const navigate = useNavigate();
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+  const [coresSelecionadas, setCoresSelecionadas] = useState<string[]>([]);
+  const [categoria, setCategoria] = useState<Categoria>("todos");
+
+  useEffect(() => {
+    produtosApi.list()
+      .then(data => setProdutos(data))
+      .catch(e => setErro((e as Error).message ?? "Erro ao carregar produtos."))
+      .finally(() => setCarregando(false));
+  }, []);
+
+  const produtosFiltrados = produtos.filter(p => {
+    if (!p.status) return false;
+    if (categoria === "feminino" && !p.feminino) return false;
+    if (categoria === "masculino" && p.feminino) return false;
+    if (coresSelecionadas.length > 0 && !coresSelecionadas.includes(p.cor ?? "")) return false;
+    return true;
+  });
+
+  const coresDisponiveis = COR_PALETTE.filter(c =>
+    produtos.some(p => p.cor === c.nome)
+  );
 
   return (
     <div className="page">
-      <Header activeTab="men" subNavItems={menSubNav} />
+      <Header activeTab="men" subNavItems={subNav} />
 
       <div className="listing-page">
         {/* Sidebar */}
         <aside className="listing-sidebar">
-          <p className="listing-sidebar__count">249 Products</p>
+          <p className="listing-sidebar__count">
+            {carregando
+              ? "Carregando..."
+              : `${produtosFiltrados.length} Produto${produtosFiltrados.length !== 1 ? "s" : ""}`}
+          </p>
 
-          {/* Category Filter */}
+          {/* Categoria */}
           <div className="filter-section">
             <div className="filter-section__header">
-              <p className="filter-section__title">Category</p>
+              <p className="filter-section__title">Categoria</p>
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M1 9L6 3L11 9" stroke="#262626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, overflow: "hidden", maxHeight: 169 }}>
-              {categories.map(cat => (
-                <label key={cat} className="filter-checkbox" style={{ cursor: "pointer" }}>
-                  <div className="filter-checkbox__box" />
-                  <span className="filter-checkbox__label">{cat}</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {(["todos", "feminino", "masculino"] as Categoria[]).map(cat => (
+                <label
+                  key={cat}
+                  className="filter-checkbox"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setCategoria(cat)}
+                >
+                  <div
+                    className="filter-checkbox__box"
+                    style={{ background: categoria === cat ? "#262626" : undefined }}
+                  />
+                  <span className="filter-checkbox__label">{LABEL_CATEGORIA[cat]}</span>
                 </label>
               ))}
             </div>
-            <p style={{ fontSize: 12, color: "#4c4c4b", letterSpacing: "0.2px", padding: "4px 0 20px", cursor: "pointer" }}>View More +</p>
           </div>
 
-          {/* Color Filter */}
-          <div className="filter-section">
-            <div className="filter-section__header">
-              <p className="filter-section__title">Color</p>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M1 9L6 3L11 9" stroke="#262626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {colors.map(({ name, hex }) => (
-                <div
-                  key={name}
-                  className="filter-color"
-                  onClick={() => setSelectedColors(prev =>
-                    prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]
-                  )}
-                  style={{ cursor: "pointer" }}
-                >
+          {/* Cor */}
+          {coresDisponiveis.length > 0 && (
+            <div className="filter-section">
+              <div className="filter-section__header">
+                <p className="filter-section__title">Cor</p>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M1 9L6 3L11 9" stroke="#262626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {coresDisponiveis.map(({ nome, label, hex }) => (
                   <div
-                    className="filter-color__swatch"
-                    style={{
-                      background: hex,
-                      outline: selectedColors.includes(name) ? "2px solid #262626" : "none",
-                      outlineOffset: 2,
-                    }}
-                  />
-                  <span className="filter-color__name">{name}</span>
-                </div>
-              ))}
+                    key={nome}
+                    className="filter-color"
+                    onClick={() =>
+                      setCoresSelecionadas(prev =>
+                        prev.includes(nome) ? prev.filter(c => c !== nome) : [...prev, nome]
+                      )
+                    }
+                    style={{ cursor: "pointer" }}
+                  >
+                    <div
+                      className="filter-color__swatch"
+                      style={{
+                        background: hex,
+                        outline: coresSelecionadas.includes(nome) ? "2px solid #262626" : "none",
+                        outlineOffset: 2,
+                      }}
+                    />
+                    <span className="filter-color__name">{label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p style={{ fontSize: 12, color: "#4c4c4b", letterSpacing: "0.2px", padding: "4px 0 20px", cursor: "pointer" }}>View More +</p>
-          </div>
+          )}
 
-          {/* Size Filter */}
+          {/* Tamanho */}
           <div className="filter-section">
             <div className="filter-section__header">
-              <p className="filter-section__title">Size</p>
+              <p className="filter-section__title">Tamanho</p>
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M1 9L6 3L11 9" stroke="#262626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <p style={{ fontSize: 12, color: "#737373", marginBottom: 8 }}>Waist</p>
+            <p style={{ fontSize: 12, color: "#737373", marginBottom: 8 }}>Cintura</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 12 }}>
               {["30", "32", "34", "36", "38", "40"].map(s => (
-                <button key={s} style={{ border: "1px solid #dddbdc", padding: "4px 8px", fontSize: 12, cursor: "pointer", background: "#fff", color: "#262626" }}>{s}</button>
+                <button key={s} style={{ border: "1px solid #dddbdc", padding: "4px 8px", fontSize: 12, cursor: "pointer", background: "#fff", color: "#262626" }}>
+                  {s}
+                </button>
               ))}
             </div>
-            <p style={{ fontSize: 12, color: "#737373", marginBottom: 8 }}>Clothing</p>
+            <p style={{ fontSize: 12, color: "#737373", marginBottom: 8 }}>Roupas</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-              {["XXS", "XS", "S", "M", "L", "XL", "XXL", "XXXL"].map(s => (
-                <button key={s} style={{ border: "1px solid #dddbdc", padding: "4px 8px", fontSize: 12, cursor: "pointer", background: "#fff", color: "#262626" }}>{s}</button>
+              {["PP", "P", "M", "G", "GG", "GGG", "GGGG"].map(s => (
+                <button key={s} style={{ border: "1px solid #dddbdc", padding: "4px 8px", fontSize: 12, cursor: "pointer", background: "#fff", color: "#262626" }}>
+                  {s}
+                </button>
               ))}
             </div>
           </div>
         </aside>
 
-        {/* Main Content */}
+        {/* Conteúdo principal */}
         <main className="listing-main">
-          <p className="listing-breadcrumb">Home &gt; Men</p>
-          <p className="listing-title">Men's Clothing &amp; Apparel - New Arrivals</p>
-          <p className="listing-featured-label">Featured</p>
+          <p className="listing-breadcrumb">Início &gt; Produtos</p>
+          <p className="listing-title">Roupas e Vestuário — Novidades</p>
+          <p className="listing-featured-label">Destaques</p>
 
-          <div className="product-grid">
-            {products.map(({ id, img, name, price, sale, badge, color, swatches, tags }) => (
-              <div
-                key={id}
-                className="listing-product-card"
-                onClick={() => navigate(`/product/${id}`)}
-              >
-                <div className="listing-product-card__img">
-                  <img src={img} alt={name} />
-                  {badge && <div className="listing-product-card__badge">{badge}</div>}
-                </div>
-                <p className="listing-product-card__name">{name}</p>
-                <div className="listing-product-card__price-row">
-                  {sale !== price ? (
-                    <>
-                      <span className="listing-product-card__original-price">{price}</span>
-                      <span className="listing-product-card__sale-price">{sale}</span>
-                    </>
-                  ) : (
-                    <span style={{ color: "#262626" }}>{price}</span>
-                  )}
-                </div>
-                <p className="listing-product-card__color">{color}</p>
-                {swatches && (
-                  <div className="listing-product-card__swatches">
-                    {swatches.map(hex => (
-                      <div key={hex} className="listing-product-card__swatch" style={{ background: hex }} />
-                    ))}
+          {erro && (
+            <p style={{ color: "#d0021b", fontSize: 14, padding: "20px 0" }}>{erro}</p>
+          )}
+
+          {carregando ? (
+            <p style={{ color: "#737373", fontSize: 14, padding: "20px 0" }}>Carregando produtos...</p>
+          ) : produtosFiltrados.length === 0 && !erro ? (
+            <p style={{ color: "#737373", fontSize: 14, padding: "20px 0" }}>Nenhum produto encontrado.</p>
+          ) : (
+            <div className="product-grid">
+              {produtosFiltrados.map(produto => {
+                const corInfo = COR_PALETTE.find(c => c.nome === produto.cor);
+                return (
+                  <div
+                    key={produto.id}
+                    className="listing-product-card"
+                    onClick={() => navigate(`/product/${produto.id}`)}
+                  >
+                    <div className="listing-product-card__img">
+                      <img
+                        src={produto.imagem_url ?? listProd1}
+                        alt={produto.nome}
+                        onError={e => { (e.target as HTMLImageElement).src = listProd1; }}
+                      />
+                      {produto.popular && (
+                        <div className="listing-product-card__badge">Popular</div>
+                      )}
+                    </div>
+                    <p className="listing-product-card__name">{produto.nome}</p>
+                    <div className="listing-product-card__price-row">
+                      <span style={{ color: "#262626" }}>{fmtPreco(produto.preco)}</span>
+                    </div>
+                    {produto.cor && (
+                      <p className="listing-product-card__color">{corInfo?.label ?? produto.cor}</p>
+                    )}
+                    {corInfo && (
+                      <div className="listing-product-card__swatches">
+                        <div
+                          className="listing-product-card__swatch"
+                          style={{ background: corInfo.hex }}
+                        />
+                      </div>
+                    )}
+                    {produto.estoque === 0 && (
+                      <div className="listing-product-card__tags">
+                        <span className="listing-product-card__tag">Sem estoque</span>
+                      </div>
+                    )}
                   </div>
-                )}
-                {tags && (
-                  <div className="listing-product-card__tags">
-                    {tags.map(tag => (
-                      <span key={tag} className="listing-product-card__tag">{tag}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </main>
       </div>
 

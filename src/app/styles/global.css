@@ -1436,7 +1436,7 @@ a {
 }
 
 .listing-sidebar {
-  width: 120px;
+  width: 220px;
   flex-shrink: 0;
   padding: 16px;
   border-right: 1px solid #dddbdc;
@@ -1552,8 +1552,8 @@ a {
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
 
 .listing-product-card {
