@@ -202,13 +202,24 @@ export function ListingPage() {
                         alt={produto.nome}
                         onError={e => { (e.target as HTMLImageElement).src = listProd1; }}
                       />
-                      {produto.popular && (
+                      {produto.em_sale && produto.desconto_pct != null ? (
+                        <div className="listing-product-card__badge listing-product-card__badge--sale">
+                          −{produto.desconto_pct}%
+                        </div>
+                      ) : produto.popular ? (
                         <div className="listing-product-card__badge">Popular</div>
-                      )}
+                      ) : null}
                     </div>
                     <p className="listing-product-card__name">{produto.nome}</p>
                     <div className="listing-product-card__price-row">
-                      <span style={{ color: "#262626" }}>{fmtPreco(produto.preco)}</span>
+                      {produto.em_sale && produto.preco_sale != null ? (
+                        <>
+                          <span style={{ color: "#c0392b", fontWeight: 600 }}>{fmtPreco(produto.preco_sale)}</span>
+                          <span style={{ color: "#b0aeae", textDecoration: "line-through", fontSize: 12, marginLeft: 6 }}>{fmtPreco(produto.preco)}</span>
+                        </>
+                      ) : (
+                        <span style={{ color: "#262626" }}>{fmtPreco(produto.preco)}</span>
+                      )}
                     </div>
                     {produto.cor && (
                       <p className="listing-product-card__color">{corInfo?.label ?? produto.cor}</p>

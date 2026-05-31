@@ -72,6 +72,66 @@ export const authApi = {
     request<{ message: string }>('/api/auth/logout', { method: 'POST' }),
 };
 
+// ─── Produto ───────────────────────────────────────────────────────────────
+
+export interface Produto {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  preco: number;
+  estoque: number;
+  cor: string | null;
+  status: boolean;
+  imagem_url: string | null;
+  popular: boolean;
+  feminino: boolean;
+  criado_em: string;
+  em_sale: boolean;
+  desconto_pct: number | null;
+  preco_sale: number | null;
+}
+
+export const produtoApi = {
+  getAll: () => request<Produto[]>('/api/produtos'),
+  getById: (id: number) => request<Produto>(`/api/produtos/${id}`),
+};
+
+export const produtosApi = {
+  list: () => request<Produto[]>('/api/produtos'),
+  getById: (id: number) => request<Produto>(`/api/produtos/${id}`),
+};
+
+// ─── Sale ──────────────────────────────────────────────────────────────────
+
+export type SaleCategoria = 'Superiores' | 'Inferiores' | 'Inverno';
+
+export interface SaleItem {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  preco: number;
+  preco_sale: number;
+  estoque: number;
+  cor: string | null;
+  status: boolean;
+  imagem_url: string | null;
+  popular: boolean;
+  feminino: boolean;
+  criado_em: string;
+  sale_id: number;
+  desconto_pct: number;
+  categoria: SaleCategoria;
+}
+
+export const saleApi = {
+  list: (categoria?: string) => {
+    const qs = categoria && categoria !== 'Todos'
+      ? `?categoria=${encodeURIComponent(categoria)}`
+      : '';
+    return request<SaleItem[]>(`/api/sale${qs}`);
+  },
+};
+
 // ─── Cesta ─────────────────────────────────────────────────────────────────
 
 export interface CestaItem {
@@ -87,29 +147,6 @@ export interface CestaItem {
 export interface CestaResponse {
   itens: CestaItem[];
 }
-
-// ─── Produto ───────────────────────────────────────────────────────────────
-
-export interface Produto {
-  id: number;
-  nome: string;
-  descricao: string | null;
-  preco: number;
-  estoque: number;
-  cor: string | null;
-  status: boolean;
-  imagem_url: string | null;
-  popular: boolean;
-  feminino: boolean;
-  criado_em: string;
-}
-
-export const produtoApi = {
-  getAll: () => request<Produto[]>('/api/produtos'),
-  getById: (id: number) => request<Produto>(`/api/produtos/${id}`),
-};
-
-// ─── Cesta ─────────────────────────────────────────────────────────────────
 
 export const cestaApi = {
   get: () =>
@@ -134,25 +171,4 @@ export const cestaApi = {
 
   clear: () =>
     request<{ message: string }>('/api/cesta', { method: 'DELETE' }),
-};
-
-// ─── Produtos ──────────────────────────────────────────────────────────────
-
-export interface Produto {
-  id: number;
-  nome: string;
-  descricao: string | null;
-  preco: number;
-  estoque: number;
-  cor: string | null;
-  status: boolean;
-  imagem_url: string | null;
-  popular: boolean;
-  feminino: boolean;
-  criado_em: string;
-}
-
-export const produtosApi = {
-  list: () => request<Produto[]>('/api/produtos'),
-  getById: (id: number) => request<Produto>(`/api/produtos/${id}`),
 };

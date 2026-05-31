@@ -1575,6 +1575,13 @@ a {
   letter-spacing: 0.5px;
 }
 
+.listing-product-card__badge--sale {
+  background: #c0392b;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+}
+
 .listing-product-card__img {
   width: 100%;
   aspect-ratio: 3/4;

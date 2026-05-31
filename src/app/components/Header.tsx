@@ -193,7 +193,7 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
               <button
                 className="main-nav__icon-btn"
                 aria-label="Account"
-                onClick={() => usuario ? setShowUserMenu(v => !v) : navigate("/login")}
+                onClick={() => setShowUserMenu(v => !v)}
                 style={usuario ? {
                   width: "auto",
                   height: 40,
@@ -221,7 +221,7 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
                 )}
               </button>
 
-              {showUserMenu && usuario && (
+              {showUserMenu && (
                 <div style={{
                   position: "absolute",
                   top: "calc(100% + 8px)",
@@ -233,30 +233,41 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
                   zIndex: 300,
                   padding: "8px 0",
                 }}>
-                  <div style={{ padding: "10px 16px 8px", borderBottom: "1px solid #f0f0f0" }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: "#262626", margin: 0 }}>{usuario.nome}</p>
-                    <p style={{ fontSize: 11, color: "#737373", margin: "2px 0 0" }}>{usuario.email}</p>
-                  </div>
-                  {usuario.is_admin && (
+                  {usuario ? (
+                    <>
+                      <div style={{ padding: "10px 16px 8px", borderBottom: "1px solid #f0f0f0" }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "#262626", margin: 0 }}>{usuario.nome}</p>
+                        <p style={{ fontSize: 11, color: "#737373", margin: "2px 0 0" }}>{usuario.email}</p>
+                      </div>
+                      {usuario.is_admin && (
+                        <button
+                          onClick={() => { navigate("/admin/dashboard"); setShowUserMenu(false); }}
+                          style={{ width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13, color: "#262626", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.5px" }}
+                        >
+                          Painel admin
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { navigate("/settings"); setShowUserMenu(false); }}
+                        style={{ width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13, color: "#262626", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.5px" }}
+                      >
+                        Minha conta
+                      </button>
+                      <button
+                        onClick={async () => { await logout(); setShowUserMenu(false); navigate("/"); }}
+                        style={{ width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13, color: "#d0021b", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.5px" }}
+                      >
+                        Sair
+                      </button>
+                    </>
+                  ) : (
                     <button
-                      onClick={() => { navigate("/admin/dashboard"); setShowUserMenu(false); }}
+                      onClick={() => { navigate("/login"); setShowUserMenu(false); }}
                       style={{ width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13, color: "#262626", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.5px" }}
                     >
-                      Painel admin
+                      Entrar
                     </button>
                   )}
-                  <button
-                    onClick={() => { navigate("/settings"); setShowUserMenu(false); }}
-                    style={{ width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13, color: "#262626", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.5px" }}
-                  >
-                    Minha conta
-                  </button>
-                  <button
-                    onClick={async () => { await logout(); setShowUserMenu(false); navigate("/"); }}
-                    style={{ width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13, color: "#d0021b", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.5px" }}
-                  >
-                    Sair
-                  </button>
                 </div>
               )}
             </div>
