@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import {
@@ -79,6 +80,7 @@ function SaleCard({ product }: { product: SaleProduct }) {
 }
 
 export function SalePage() {
+  usePageTitle("Sale");
   const [activeCategory, setActiveCategory] = useState<Category>("Todos");
   const [sortBy, setSortBy] = useState<"featured" | "price-asc" | "price-desc" | "pct">("featured");
   const [timeLeft, setTimeLeft] = useState(getTimeLeft());

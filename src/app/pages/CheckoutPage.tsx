@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -61,6 +62,7 @@ function Field({
 }
 
 export function CheckoutPage() {
+  usePageTitle("Checkout");
   const navigate = useNavigate();
   const { usuario } = useAuth();
   const { items, subtotal, clearCart } = useCart();

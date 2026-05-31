@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 
@@ -42,6 +43,7 @@ type Topic = "Pedido" | "Troca" | "Produto" | "Conta" | "Imprensa" | "Outro";
 const TOPICS: Topic[] = ["Pedido", "Troca", "Produto", "Conta", "Imprensa", "Outro"];
 
 export function ContactPage() {
+  usePageTitle("Contato");
   const [name,      setName]      = useState("");
   const [email,     setEmail]     = useState("");
   const [orderNum,  setOrderNum]  = useState("");

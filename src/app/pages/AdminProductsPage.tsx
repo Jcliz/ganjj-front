@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { AdminSidebar } from "../components/AdminSidebar";
 
 function SearchIcon() {
@@ -441,6 +442,7 @@ function DeleteModal({ product, onConfirm, onClose }: { product: Product; onConf
 const PAGE_SIZE = 7;
 
 export function AdminProductsPage() {
+  usePageTitle("Produtos — Admin");
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState<Category | "All">("All");

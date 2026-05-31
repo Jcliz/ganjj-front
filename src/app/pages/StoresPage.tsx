@@ -1,3 +1,4 @@
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import {
@@ -35,6 +36,7 @@ const aboutSubNav = [
 ];
 
 export function StoresPage() {
+  usePageTitle("Lojas");
   return (
     <div className="page">
       <Header activeTab="about" subNavItems={aboutSubNav} />

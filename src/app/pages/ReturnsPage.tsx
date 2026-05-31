@@ -1,8 +1,10 @@
 import { useNavigate } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 
 export function ReturnsPage() {
+  usePageTitle("Trocas e Devoluções");
   const navigate = useNavigate();
 
   return (

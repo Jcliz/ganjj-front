@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { AdminSidebar } from "../components/AdminSidebar";
 
 function SearchIcon() {
@@ -308,6 +309,7 @@ function DeleteModal({ user, onConfirm, onClose }: { user: User; onConfirm: () =
 const PAGE_SIZE = 6;
 
 export function AdminUsersPage() {
+  usePageTitle("Usuários");
   useNavigate();
   const [users,        setUsers]        = useState<User[]>(INITIAL_USERS);
   const [search,       setSearch]       = useState("");

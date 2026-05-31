@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { AdminSidebar } from "../components/AdminSidebar";
 
 function TrendUpIcon({ color = "#2a7a3b" }: { color?: string }) {
@@ -251,6 +252,7 @@ function DonutChart({ segments }: { segments: StatusDist[] }) {
 const API_URL = 'http://localhost:3000';
 
 export function AdminDashboardPage() {
+  usePageTitle("Dashboard");
   const navigate = useNavigate();
   const [chartTab, setChartTab] = useState<"revenue" | "orders">("revenue");
   const [period, setPeriod]     = useState<"12m" | "6m" | "3m">("12m");

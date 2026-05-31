@@ -1,3 +1,4 @@
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import {
@@ -24,6 +25,7 @@ const bannerItems = [
 ];
 
 export function LandingPage() {
+  usePageTitle("");
   return (
     <div className="page">
       <Header />

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { listProd1 } from "../../assets/assets";
@@ -42,6 +43,7 @@ function fmtPreco(n: number) {
 }
 
 export function ListingPage() {
+  usePageTitle("Produtos");
   const navigate = useNavigate();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carregando, setCarregando] = useState(true);

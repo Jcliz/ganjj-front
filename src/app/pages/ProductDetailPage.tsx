@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { useCart } from "../../contexts/CartContext";
@@ -100,6 +101,7 @@ function formatarPreco(valor: number): string {
 }
 
 export function ProductDetailPage() {
+  usePageTitle("Produto");
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { usuario } = useAuth();
