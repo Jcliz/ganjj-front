@@ -85,15 +85,41 @@ export interface Produto {
   imagem_url: string | null;
   popular: boolean;
   feminino: boolean;
+  novo: boolean;
+  social: boolean;
+  tipo_roupa: string | null;
+  tamanhos: string[] | null;
   criado_em: string;
   em_sale: boolean;
   desconto_pct: number | null;
   preco_sale: number | null;
 }
 
+export interface ProdutoPayload {
+  nome: string;
+  descricao?: string;
+  preco: number;
+  estoque: number;
+  cor?: string;
+  status?: boolean;
+  imagem_url?: string;
+  popular?: boolean;
+  feminino?: boolean;
+  novo?: boolean;
+  social?: boolean;
+  tipo_roupa?: string;
+  tamanhos?: string[];
+}
+
 export const produtoApi = {
   getAll: () => request<Produto[]>('/api/produtos'),
   getById: (id: number) => request<Produto>(`/api/produtos/${id}`),
+  create: (body: ProdutoPayload) =>
+    request<Produto>('/api/produtos', { method: 'POST', body: JSON.stringify(body) }),
+  update: (id: number, body: Partial<ProdutoPayload>) =>
+    request<Produto>(`/api/produtos/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  delete: (id: number) =>
+    request<{ message: string }>(`/api/produtos/${id}`, { method: 'DELETE' }),
 };
 
 export const produtosApi = {

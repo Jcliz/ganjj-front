@@ -8,6 +8,7 @@ import { useCart } from "../../contexts/CartContext";
 
 interface NavDropdownProps {
   onClose: () => void;
+  categoria: "feminino" | "masculino";
 }
 
 function SearchIcon() {
@@ -47,8 +48,24 @@ function ArrowRightIcon({ color = "white" }: { color?: string }) {
   );
 }
 
-function MenDropdown({ onClose }: NavDropdownProps) {
+const DROPDOWN_ITEMS: { label: string; params: Record<string, string> }[] = [
+  { label: "Coleção nova",    params: { novo: "true" } },
+  { label: "Camisas",         params: { tipo: "Camisas" } },
+  { label: "Camisetas",       params: { tipo: "Camisetas" } },
+  { label: "Casacos",         params: { tipo: "Casacos" } },
+  { label: "Calças",          params: { tipo: "Calças" } },
+  { label: "Abaixo de R$100", params: { preco_max: "100" } },
+];
+
+function MenDropdown({ onClose, categoria }: NavDropdownProps) {
   const navigate = useNavigate();
+
+  function goTo(params: Record<string, string>) {
+    const qs = new URLSearchParams({ categoria, ...params }).toString();
+    navigate(`/listing${qs ? `?${qs}` : ""}`);
+    onClose();
+  }
+
   return (
     <div
       style={{
@@ -68,13 +85,19 @@ function MenDropdown({ onClose }: NavDropdownProps) {
     >
       <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
         <p style={{ fontSize: 10, lineHeight: "16px", color: "#737373", letterSpacing: "0.6px", fontWeight: 600 }}>OPÇÕES</p>
-        {["Coleção nova", "Camisas", "Camisetas", "Casacos", "Calças", "Abaixo de R$100"].map(item => (
-          <p key={item} onClick={() => { navigate("/listing"); onClose(); }} style={{ fontSize: 14, lineHeight: "16.8px", color: "#262626", letterSpacing: "1.4px", cursor: "pointer" }}>{item}</p>
+        {DROPDOWN_ITEMS.map(({ label, params }) => (
+          <p
+            key={label}
+            onClick={() => goTo(params)}
+            style={{ fontSize: 14, lineHeight: "16.8px", color: "#262626", letterSpacing: "1.4px", cursor: "pointer" }}
+          >
+            {label}
+          </p>
         ))}
       </div>
 
       <div style={{ flex: 2, display: "flex", gap: 12 }}>
-        <div style={{ flex: 1, height: 262, position: "relative", overflow: "hidden", cursor: "pointer" }} onClick={() => { navigate("/listing"); onClose(); }}>
+        <div style={{ flex: 1, height: 262, position: "relative", overflow: "hidden", cursor: "pointer" }} onClick={() => goTo({ social: "true" })}>
           <img src={navDropImg1} alt="" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }} />
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end" }}>
             <div style={{ display: "flex", gap: 12, alignItems: "flex-end", padding: "16px", width: "100%" }}>
@@ -86,7 +109,7 @@ function MenDropdown({ onClose }: NavDropdownProps) {
             </div>
           </div>
         </div>
-        <div style={{ flex: 1, height: 262, position: "relative", overflow: "hidden", cursor: "pointer" }} onClick={() => { navigate("/listing"); onClose(); }}>
+        <div style={{ flex: 1, height: 262, position: "relative", overflow: "hidden", cursor: "pointer" }} onClick={() => goTo({ tipo: "Casacos" })}>
           <img src={navDropImg2} alt="" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }} />
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end" }}>
             <div style={{ display: "flex", gap: 12, alignItems: "flex-end", padding: "16px", width: "100%" }}>
@@ -113,7 +136,7 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
   const location = useLocation();
   const { usuario, logout } = useAuth();
   const { itemCount } = useCart();
-  const [showMenDropdown, setShowMenDropdown] = useState(false);
+  const [showMenDropdown, setShowMenDropdown] = useState<"feminino" | "masculino" | null>(null);
   const [showCart, setShowCart] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -145,20 +168,20 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
         <div className="main-nav__inner">
           <div className="main-nav__tabs">
             <div
-              className={`main-nav__tab${activeTab === "masculino" ? " main-nav__tab--active" : ""}`}
-              onClick={() => { navigate("/listing"); setShowMenDropdown(false); }}
-              onMouseEnter={() => setShowMenDropdown(true)}
-              onMouseLeave={() => setShowMenDropdown(false)}
+              className={`main-nav__tab${activeTab === "feminino" ? " main-nav__tab--active" : ""}`}
+              onClick={() => { navigate("/listing?categoria=feminino"); setShowMenDropdown(null); }}
+              onMouseEnter={() => setShowMenDropdown("feminino")}
+              onMouseLeave={() => setShowMenDropdown(null)}
               style={{ cursor: "pointer" }}
             >
               <span>Feminino</span>
-              {activeTab === "masculino" && <div className="main-nav__tab-underline" />}
+              {activeTab === "feminino" && <div className="main-nav__tab-underline" />}
             </div>
             <div
               className={`main-nav__tab${activeTab === "masculino" ? " main-nav__tab--active" : ""}`}
-              onClick={() => { navigate("/listing"); setShowMenDropdown(false); }}
-              onMouseEnter={() => setShowMenDropdown(true)}
-              onMouseLeave={() => setShowMenDropdown(false)}
+              onClick={() => { navigate("/listing?categoria=masculino"); setShowMenDropdown(null); }}
+              onMouseEnter={() => setShowMenDropdown("masculino")}
+              onMouseLeave={() => setShowMenDropdown(null)}
               style={{ cursor: "pointer" }}
             >
               <span>Masculino</span>
@@ -304,8 +327,8 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
         </div>
 
         {showMenDropdown && (
-          <div onMouseEnter={() => setShowMenDropdown(true)} onMouseLeave={() => setShowMenDropdown(false)}>
-            <MenDropdown onClose={() => setShowMenDropdown(false)} />
+          <div onMouseEnter={() => setShowMenDropdown(showMenDropdown)} onMouseLeave={() => setShowMenDropdown(null)}>
+            <MenDropdown onClose={() => setShowMenDropdown(null)} categoria={showMenDropdown} />
           </div>
         )}
       </div>
