@@ -41,7 +41,7 @@ export interface RegisterPayload {
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
+  senha: string;
 }
 
 export interface AuthResponse {
@@ -63,7 +63,7 @@ export const authApi = {
   login: (email: string, password: string) =>
     request<AuthResponse>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, senha: password }),
     }),
 
   me: () => request<MeResponse>('/api/auth/me'),

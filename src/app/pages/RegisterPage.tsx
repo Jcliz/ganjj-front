@@ -169,7 +169,7 @@ export function RegisterPage() {
     setLoading(true);
 
     try {
-      await register({ firstName, lastName, email, password });
+      await register({ firstName, lastName, email, senha: password });
       setSuccess(true);
     } catch (err) {
       setGeneralError(err instanceof Error ? err.message : "Erro ao criar conta.");

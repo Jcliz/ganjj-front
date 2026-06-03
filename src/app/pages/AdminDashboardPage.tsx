@@ -162,7 +162,9 @@ function KpiCard({
 
 type OrderStatus = "Entregue" | "Enviado" | "Em processamento" | "Cancelado";
 const STATUS_CFG: Record<string, { dot: string; color: string }> = {
+  "Concluído":        { dot: "#2a7a3b", color: "#2a7a3b" },
   "Entregue":         { dot: "#2a7a3b", color: "#2a7a3b" },
+  "Frete":            { dot: "#4a7ab5", color: "#4a7ab5" },
   "Enviado":          { dot: "#4a7ab5", color: "#4a7ab5" },
   "Em processamento": { dot: "#f5a623", color: "#b07a0a" },
   "Cancelado":        { dot: "#d0021b", color: "#d0021b" },
@@ -261,7 +263,7 @@ export function AdminDashboardPage() {
 
   const fetchDashboard = () => {
     setLoading(true);
-    fetch(`${API_URL}/api/dashboard`)
+    fetch(`${API_URL}/api/dashboard`, { credentials: 'include' })
       .then(r => r.json())
       .then((d: DashboardData) => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));

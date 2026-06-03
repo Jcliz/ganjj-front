@@ -200,9 +200,25 @@ export function ProductDetailPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <p style={{ fontSize: 20, lineHeight: "28px", color: "#262626" }}>{produto.nome}</p>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <span style={{ color: "#262626", fontSize: 16, fontWeight: 600 }}>
-                {formatarPreco(produto.preco)}
-              </span>
+              {produto.em_sale && produto.preco_sale != null ? (
+                <>
+                  <span style={{ color: "#d0021b", fontSize: 16, fontWeight: 600 }}>
+                    {formatarPreco(produto.preco_sale)}
+                  </span>
+                  <span style={{ color: "#737373", fontSize: 14, textDecoration: "line-through" }}>
+                    {formatarPreco(produto.preco)}
+                  </span>
+                  {produto.desconto_pct != null && (
+                    <span style={{ background: "#d0021b", color: "#fff", fontSize: 11, fontWeight: 700, padding: "2px 6px", borderRadius: 3 }}>
+                      -{produto.desconto_pct}%
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span style={{ color: "#262626", fontSize: 16, fontWeight: 600 }}>
+                  {formatarPreco(produto.preco)}
+                </span>
+              )}
             </div>
 
           </div>

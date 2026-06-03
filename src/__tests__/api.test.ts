@@ -48,7 +48,7 @@ describe('authApi.login', () => {
     const [url, options] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
     expect(url).toContain('/api/auth/login');
     expect(options.method).toBe('POST');
-    expect(JSON.parse(options.body as string)).toEqual({ email: 'j@j.com', password: 'senha123' });
+    expect(JSON.parse(options.body as string)).toEqual({ email: 'j@j.com', senha: 'senha123' });
   });
 });
 
