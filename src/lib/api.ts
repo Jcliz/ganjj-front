@@ -174,6 +174,44 @@ export interface CestaResponse {
   itens: CestaItem[];
 }
 
+// ─── Pedidos ───────────────────────────────────────────────────────────────
+
+export interface PedidoItem {
+  nome: string;
+  tamanho: string | null;
+  quantidade: number;
+  preco: number;
+}
+
+export interface Pedido {
+  id: number;
+  codigo: string;
+  status: string;
+  passo_atual: number;
+  total: number;
+  endereco_entrega: string | null;
+  numero_rastreio: string | null;
+  criado_em: string;
+  itens: PedidoItem[];
+}
+
+export interface AdminPedido extends Pedido {
+  cliente_nome: string | null;
+  cliente_email: string | null;
+}
+
+export const pedidoApi = {
+  meus: () => request<Pedido[]>('/api/pedidos/meus'),
+  adminTodos: () => request<AdminPedido[]>('/api/pedidos/admin/todos'),
+  atualizarPasso: (id: number, passo: number) =>
+    request<{ id: number; passo_atual: number; status: string }>(`/api/pedidos/${id}/passo`, {
+      method: 'PUT',
+      body: JSON.stringify({ passo }),
+    }),
+};
+
+// ─── Cesta ─────────────────────────────────────────────────────────────────
+
 export const cestaApi = {
   get: () =>
     request<CestaResponse>('/api/cesta'),
