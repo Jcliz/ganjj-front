@@ -271,6 +271,12 @@ export function Header({ activeTab, subNavItems }: HeaderProps) {
                         </button>
                       )}
                       <button
+                        onClick={() => { navigate("/my-orders"); setShowUserMenu(false); }}
+                        style={{ width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13, color: "#262626", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.5px" }}
+                      >
+                        Meus pedidos
+                      </button>
+                      <button
                         onClick={() => { navigate("/settings"); setShowUserMenu(false); }}
                         style={{ width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13, color: "#262626", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.5px" }}
                       >

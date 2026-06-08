@@ -6,7 +6,8 @@ import { useNavigate } from "react-router";
 export type AdminNavItem =
   | "dashboard"
   | "users"
-  | "products";
+  | "products"
+  | "orders";
 
 interface AdminSidebarProps {
   activeItem?: AdminNavItem;
@@ -97,6 +98,7 @@ const NAV_ITEMS: {
   { key: "dashboard", label: "Dashboard", path: "/admin/dashboard", icon: <AnalyticsIcon /> },
   { key: "users",     label: "Usuários",  path: "/admin/users",     icon: <UsersIcon />     },
   { key: "products",  label: "Produtos",  path: "/admin/products",  icon: <ProductsIcon />  },
+  { key: "orders",    label: "Pedidos",   path: "/admin/orders",    icon: <OrdersIcon />    },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
