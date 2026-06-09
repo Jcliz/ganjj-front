@@ -418,6 +418,7 @@ export function AdminDashboardPage() {
                   </div>
                   <button className="dash-tab-btn" onClick={() => navigate("/admin/orders")}>Ver Todos</button>
                 </div>
+                <div style={{ overflowX: "auto" }}>
                 <table className="admin-table" style={{ marginTop: 0 }}>
                   <thead>
                     <tr>
@@ -442,6 +443,7 @@ export function AdminDashboardPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
 
               <div className="dash-col-right">

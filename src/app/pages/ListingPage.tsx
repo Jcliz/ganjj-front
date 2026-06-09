@@ -4,7 +4,7 @@ import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 
-import { produtosApi, type Produto } from "../../lib/api";
+import { produtoApi, type Produto } from "../../lib/api";
 
 const COR_PALETTE: { nome: string; label: string; hex: string }[] = [
   { nome: "Black",  label: "Preto",    hex: "#1a1a1a" },
@@ -58,7 +58,7 @@ export function ListingPage() {
   const precoMax = searchParams.get("preco_max") ? Number(searchParams.get("preco_max")) : null;
 
   useEffect(() => {
-    produtosApi.list()
+    produtoApi.getAll()
       .then(data => setProdutos(data))
       .catch(e => setErro((e as Error).message ?? "Erro ao carregar produtos."))
       .finally(() => setCarregando(false));

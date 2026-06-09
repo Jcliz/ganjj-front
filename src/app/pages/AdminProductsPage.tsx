@@ -374,6 +374,7 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
           <div className="admin-form__field">
             <label className="admin-form__label">IMAGEM DO PRODUTO</label>
             <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              {/* Preview */}
               <div style={{
                 width: 72, height: 72, flexShrink: 0,
                 border: "1px solid #dddbdc",
@@ -598,10 +599,10 @@ export function AdminProductsPage() {
     );
   }
 
-  const activeCount   = produtos.filter(p => p.status).length;
+  const activeCount = produtos.filter(p => p.status).length;
   const inactiveCount = produtos.filter(p => !p.status).length;
-  const outOfStock    = produtos.filter(p => p.estoque === 0).length;
-  const onSaleCount   = produtos.filter(p => p.em_sale).length;
+  const outOfStock = produtos.filter(p => p.estoque === 0).length;
+  const onSaleCount = produtos.filter(p => p.em_sale).length;
 
   return (
     <div className="admin-page">
