@@ -8,32 +8,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import { produtoApi } from "../../lib/api";
 import type { Produto } from "../../lib/api";
 
-// TODO: AWS S3 — Instalar e configurar o SDK:
-//   npm install @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
-//
-// import { S3Client, GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
-// import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-//
-// const s3 = new S3Client({ region: import.meta.env.VITE_AWS_REGION });
-//
-// async function resolverUrlS3(chave: string): Promise<string> {
-//   const cmd = new GetObjectCommand({ Bucket: import.meta.env.VITE_AWS_S3_BUCKET, Key: chave });
-//   return getSignedUrl(s3, cmd, { expiresIn: 3600 });
-// }
-//
-// async function listarImagensProduto(produtoId: number): Promise<string[]> {
-//   const cmd = new ListObjectsV2Command({
-//     Bucket: import.meta.env.VITE_AWS_S3_BUCKET,
-//     Prefix: `produtos/${produtoId}/`,
-//   });
-//   const res = await s3.send(cmd);
-//   return Promise.all((res.Contents ?? []).map(obj => resolverUrlS3(obj.Key!)));
-// }
-
 function resolverImagem(imagem_url: string | null): string | null {
   if (!imagem_url) return null;
-  // TODO: AWS S3 — Se imagem_url for uma chave S3 (ex: "produtos/42/capa.jpg"),
-  // substituir esta linha por: return resolverUrlS3(imagem_url);
   return imagem_url;
 }
 
@@ -112,7 +88,6 @@ export function ProductDetailPage() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(false);
 
-  // TODO: AWS S3 — Substituir por listarImagensProduto(produto.id)
   const [imagemPrincipal, setImagemPrincipal] = useState<string | null>(null);
 
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState("M");

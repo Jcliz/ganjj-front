@@ -137,11 +137,6 @@ export const uploadApi = {
   },
 };
 
-export const produtosApi = {
-  list: () => request<Produto[]>('/api/produtos'),
-  getById: (id: number) => request<Produto>(`/api/produtos/${id}`),
-};
-
 // ─── Sale ──────────────────────────────────────────────────────────────────
 
 export type SaleCategoria = 'Superiores' | 'Inferiores' | 'Inverno';
