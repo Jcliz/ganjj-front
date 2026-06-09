@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import { catShirts, catDenim, catOuterwear, listProd1 } from "../../assets/assets";
+import { catShirts, catDenim, catOuterwear } from "../../assets/assets";
 import { saleApi, type SaleItem } from "../../lib/api";
 
 type FilterCategoria = "Todos" | "Superiores" | "Inferiores" | "Inverno";
@@ -44,10 +44,9 @@ function SaleCard({ item }: { item: SaleItem }) {
     <div className="sale-card" onClick={() => navigate(`/product/${item.id}`)}>
       <div className="sale-card__img-wrap">
         <img
-          src={item.imagem_url ?? listProd1}
+          src={item.imagem_url ?? ""}
           alt={item.nome}
           className="sale-card__img"
-          onError={e => { (e.target as HTMLImageElement).src = listProd1; }}
         />
         <span className="sale-card__badge">−{item.desconto_pct}%</span>
       </div>

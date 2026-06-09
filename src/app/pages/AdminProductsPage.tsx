@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { AdminSidebar } from "../components/AdminSidebar";
-import { produtoApi, type Produto, type ProdutoPayload } from "../../lib/api";
+import { produtoApi, uploadApi, type Produto, type ProdutoPayload } from "../../lib/api";
 
 function SearchIcon() {
   return (
@@ -157,9 +157,28 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
   const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function toggleTamanho(s: string) {
     setTamanhos(prev => prev.includes(s) ? prev.filter(t => t !== s) : [...prev, s]);
+  }
+
+  async function handleFileChange(ev: React.ChangeEvent<HTMLInputElement>) {
+    const file = ev.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const url = await uploadApi.uploadImagem(file);
+      setImagemUrl(url);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Erro no upload");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   }
 
   function validate(): FormErrors {
@@ -351,10 +370,65 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
             </div>
           </div>
 
-          {inputField("p-img", "URL DA IMAGEM", imagemUrl, setImagemUrl, {
-            placeholder: "https://...",
-            hint: "URL pública da imagem do produto",
-          })}
+          {/* Upload de imagem */}
+          <div className="admin-form__field">
+            <label className="admin-form__label">IMAGEM DO PRODUTO</label>
+            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              {/* Preview */}
+              <div style={{
+                width: 72, height: 72, flexShrink: 0,
+                border: "1px solid #dddbdc",
+                background: "#f5f5f5",
+                overflow: "hidden",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {uploading ? (
+                  <span style={{ fontSize: 10, color: "#737373" }}>...</span>
+                ) : imagemUrl ? (
+                  <img src={imagemUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <span style={{ fontSize: 10, color: "#b0aeae" }}>sem img</span>
+                )}
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleFileChange}
+                />
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn--ghost"
+                    style={{ fontSize: 12, padding: "5px 10px" }}
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploading ? "Enviando..." : imagemUrl ? "Trocar imagem" : "Escolher imagem"}
+                  </button>
+                  {imagemUrl && !uploading && (
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn--ghost"
+                      style={{ fontSize: 12, padding: "5px 10px", color: "#d0021b", borderColor: "#d0021b" }}
+                      onClick={() => setImagemUrl("")}
+                    >
+                      Remover
+                    </button>
+                  )}
+                </div>
+                {uploadError && (
+                  <p style={{ fontSize: 11, color: "#d0021b", marginTop: 4 }}>{uploadError}</p>
+                )}
+                {!uploadError && (
+                  <p style={{ fontSize: 11, color: "#737373", marginTop: 4 }}>PNG, JPG ou WEBP · máx. 5 MB</p>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Status e checkboxes */}
           <div className="admin-form__row" style={{ alignItems: "center" }}>

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import { listProd1 } from "../../assets/assets";
+
 import { produtosApi, type Produto } from "../../lib/api";
 
 const COR_PALETTE: { nome: string; label: string; hex: string }[] = [
@@ -392,9 +392,8 @@ export function ListingPage() {
                   >
                     <div className="listing-product-card__img">
                       <img
-                        src={produto.imagem_url ?? listProd1}
+                        src={produto.imagem_url ?? ""}
                         alt={produto.nome}
-                        onError={e => { (e.target as HTMLImageElement).src = listProd1; }}
                       />
                       {produto.em_sale && produto.desconto_pct != null ? (
                         <div className="listing-product-card__badge listing-product-card__badge--sale">
