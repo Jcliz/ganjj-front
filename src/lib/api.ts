@@ -122,6 +122,21 @@ export const produtoApi = {
     request<{ message: string }>(`/api/produtos/${id}`, { method: 'DELETE' }),
 };
 
+export const uploadApi = {
+  uploadImagem: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('imagem', file);
+    const res = await fetch(`${BASE_URL}/api/produtos/upload`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error((data as ApiError).error ?? 'Erro no upload');
+    return (data as { url: string }).url;
+  },
+};
+
 export const produtosApi = {
   list: () => request<Produto[]>('/api/produtos'),
   getById: (id: number) => request<Produto>(`/api/produtos/${id}`),
