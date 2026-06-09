@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 function EyeIcon({ visible }: { visible: boolean }) {
   return visible ? (
@@ -114,6 +115,7 @@ function passwordStrength(pw: string): number {
 }
 
 export function RegisterPage() {
+  usePageTitle("Cadastro");
   const navigate = useNavigate();
   const { register } = useAuth();
 
@@ -167,7 +169,7 @@ export function RegisterPage() {
     setLoading(true);
 
     try {
-      await register({ firstName, lastName, email, password });
+      await register({ firstName, lastName, email, senha: password });
       setSuccess(true);
     } catch (err) {
       setGeneralError(err instanceof Error ? err.message : "Erro ao criar conta.");

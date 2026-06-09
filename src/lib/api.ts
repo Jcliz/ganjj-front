@@ -41,7 +41,7 @@ export interface RegisterPayload {
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
+  senha: string;
 }
 
 export interface AuthResponse {
@@ -63,13 +63,114 @@ export const authApi = {
   login: (email: string, password: string) =>
     request<AuthResponse>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, senha: password }),
     }),
 
   me: () => request<MeResponse>('/api/auth/me'),
 
   logout: () =>
     request<{ message: string }>('/api/auth/logout', { method: 'POST' }),
+};
+
+// ─── Produto ───────────────────────────────────────────────────────────────
+
+export interface Produto {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  preco: number;
+  estoque: number;
+  cor: string | null;
+  status: boolean;
+  imagem_url: string | null;
+  popular: boolean;
+  feminino: boolean;
+  novo: boolean;
+  social: boolean;
+  tipo_roupa: string | null;
+  tamanhos: string[] | null;
+  criado_em: string;
+  em_sale: boolean;
+  desconto_pct: number | null;
+  preco_sale: number | null;
+}
+
+export interface ProdutoPayload {
+  nome: string;
+  descricao?: string;
+  preco: number;
+  estoque: number;
+  cor?: string;
+  status?: boolean;
+  imagem_url?: string;
+  popular?: boolean;
+  feminino?: boolean;
+  novo?: boolean;
+  social?: boolean;
+  tipo_roupa?: string;
+  tamanhos?: string[];
+}
+
+export const produtoApi = {
+  getAll: () => request<Produto[]>('/api/produtos'),
+  getById: (id: number) => request<Produto>(`/api/produtos/${id}`),
+  create: (body: ProdutoPayload) =>
+    request<Produto>('/api/produtos', { method: 'POST', body: JSON.stringify(body) }),
+  update: (id: number, body: Partial<ProdutoPayload>) =>
+    request<Produto>(`/api/produtos/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  delete: (id: number) =>
+    request<{ message: string }>(`/api/produtos/${id}`, { method: 'DELETE' }),
+};
+
+export const uploadApi = {
+  uploadImagem: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('imagem', file);
+    const res = await fetch(`${BASE_URL}/api/produtos/upload`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error((data as ApiError).error ?? 'Erro no upload');
+    return (data as { url: string }).url;
+  },
+};
+
+export const produtosApi = {
+  list: () => request<Produto[]>('/api/produtos'),
+  getById: (id: number) => request<Produto>(`/api/produtos/${id}`),
+};
+
+// ─── Sale ──────────────────────────────────────────────────────────────────
+
+export type SaleCategoria = 'Superiores' | 'Inferiores' | 'Inverno';
+
+export interface SaleItem {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  preco: number;
+  preco_sale: number;
+  estoque: number;
+  cor: string | null;
+  status: boolean;
+  imagem_url: string | null;
+  popular: boolean;
+  feminino: boolean;
+  criado_em: string;
+  sale_id: number;
+  desconto_pct: number;
+  categoria: SaleCategoria;
+}
+
+export const saleApi = {
+  list: (categoria?: string) => {
+    const qs = categoria && categoria !== 'Todos'
+      ? `?categoria=${encodeURIComponent(categoria)}`
+      : '';
+    return request<SaleItem[]>(`/api/sale${qs}`);
+  },
 };
 
 // ─── Cesta ─────────────────────────────────────────────────────────────────
@@ -88,25 +189,40 @@ export interface CestaResponse {
   itens: CestaItem[];
 }
 
-// ─── Produto ───────────────────────────────────────────────────────────────
+// ─── Pedidos ───────────────────────────────────────────────────────────────
 
-export interface Produto {
-  id: number;
+export interface PedidoItem {
   nome: string;
-  descricao: string | null;
+  tamanho: string | null;
+  quantidade: number;
   preco: number;
-  estoque: number;
-  cor: string | null;
-  status: boolean;
-  imagem_url: string | null;
-  popular: boolean;
-  feminino: boolean;
-  criado_em: string;
 }
 
-export const produtoApi = {
-  getAll: () => request<Produto[]>('/api/produtos'),
-  getById: (id: number) => request<Produto>(`/api/produtos/${id}`),
+export interface Pedido {
+  id: number;
+  codigo: string;
+  status: string;
+  passo_atual: number;
+  total: number;
+  endereco_entrega: string | null;
+  numero_rastreio: string | null;
+  criado_em: string;
+  itens: PedidoItem[];
+}
+
+export interface AdminPedido extends Pedido {
+  cliente_nome: string | null;
+  cliente_email: string | null;
+}
+
+export const pedidoApi = {
+  meus: () => request<Pedido[]>('/api/pedidos/meus'),
+  adminTodos: () => request<AdminPedido[]>('/api/pedidos/admin/todos'),
+  atualizarPasso: (id: number, passo: number) =>
+    request<{ id: number; passo_atual: number; status: string }>(`/api/pedidos/${id}/passo`, {
+      method: 'PUT',
+      body: JSON.stringify({ passo }),
+    }),
 };
 
 // ─── Cesta ─────────────────────────────────────────────────────────────────
@@ -134,25 +250,4 @@ export const cestaApi = {
 
   clear: () =>
     request<{ message: string }>('/api/cesta', { method: 'DELETE' }),
-};
-
-// ─── Produtos ──────────────────────────────────────────────────────────────
-
-export interface Produto {
-  id: number;
-  nome: string;
-  descricao: string | null;
-  preco: number;
-  estoque: number;
-  cor: string | null;
-  status: boolean;
-  imagem_url: string | null;
-  popular: boolean;
-  feminino: boolean;
-  criado_em: string;
-}
-
-export const produtosApi = {
-  list: () => request<Produto[]>('/api/produtos'),
-  getById: (id: number) => request<Produto>(`/api/produtos/${id}`),
 };

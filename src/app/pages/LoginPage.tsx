@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 function EyeIcon({ visible }: { visible: boolean }) {
   return visible ? (
@@ -44,6 +45,7 @@ function FacebookIcon() {
 }
 
 export function LoginPage() {
+  usePageTitle("Login");
   const navigate = useNavigate();
   const { login } = useAuth();
 

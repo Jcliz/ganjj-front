@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import { listProd1 } from "../../assets/assets";
+
 import { produtosApi, type Produto } from "../../lib/api";
 
 const COR_PALETTE: { nome: string; label: string; hex: string }[] = [
@@ -20,14 +21,10 @@ const COR_PALETTE: { nome: string; label: string; hex: string }[] = [
   { nome: "Cream",  label: "Creme",    hex: "#f5f0e8" },
 ];
 
-const subNav = [
-  { label: "Sobre nós" },
-  { label: "Lojas" },
-  { label: "Sale ganjj" },
-  { label: "Lookbook" },
-  { label: "Trocas e devoluções" },
-  { label: "Contato" },
-];
+const TIPOS_ROUPA = ["Camisas", "Camisetas", "Casacos", "Jaquetas", "Calças", "Jeans"];
+
+const TAMANHOS_CINTURA = ["30", "32", "34", "36", "38", "40"];
+const TAMANHOS_ROUPAS  = ["PP", "P", "M", "G", "GG", "GGG", "GGGG"];
 
 type Categoria = "todos" | "feminino" | "masculino";
 
@@ -42,12 +39,23 @@ function fmtPreco(n: number) {
 }
 
 export function ListingPage() {
+  usePageTitle("Produtos");
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [coresSelecionadas, setCoresSelecionadas] = useState<string[]>([]);
-  const [categoria, setCategoria] = useState<Categoria>("todos");
+
+  // Todos os filtros derivados diretamente da URL (fonte única de verdade)
+  const categoria = (searchParams.get("categoria") as Categoria) ?? "todos";
+  const tipo = searchParams.get("tipo") ?? "";
+  const coresSelecionadas = searchParams.get("cor") ? searchParams.get("cor")!.split(",") : [];
+  const tamanhosSelecionados = searchParams.get("tamanho") ? searchParams.get("tamanho")!.split(",") : [];
+  const apenasPopular = searchParams.get("popular") === "true";
+  const apenasNovo = searchParams.get("novo") === "true";
+  const apenasSocial = searchParams.get("social") === "true";
+  const precoMax = searchParams.get("preco_max") ? Number(searchParams.get("preco_max")) : null;
 
   useEffect(() => {
     produtosApi.list()
@@ -56,11 +64,60 @@ export function ListingPage() {
       .finally(() => setCarregando(false));
   }, []);
 
+  function updateParam(key: string, value: string | null) {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (value === null) next.delete(key);
+      else next.set(key, value);
+      return next;
+    }, { replace: true });
+  }
+
+  const temFiltroAtivo =
+    categoria !== "todos" ||
+    tipo !== "" ||
+    coresSelecionadas.length > 0 ||
+    tamanhosSelecionados.length > 0 ||
+    apenasPopular ||
+    apenasNovo ||
+    apenasSocial ||
+    precoMax !== null;
+
+  function limparFiltros() {
+    setSearchParams({}, { replace: true });
+  }
+
+  function toggleTamanho(s: string) {
+    const next = tamanhosSelecionados.includes(s)
+      ? tamanhosSelecionados.filter(t => t !== s)
+      : [...tamanhosSelecionados, s];
+    updateParam("tamanho", next.length > 0 ? next.join(",") : null);
+  }
+
+  function toggleCor(nome: string) {
+    const next = coresSelecionadas.includes(nome)
+      ? coresSelecionadas.filter(c => c !== nome)
+      : [...coresSelecionadas, nome];
+    updateParam("cor", next.length > 0 ? next.join(",") : null);
+  }
+
   const produtosFiltrados = produtos.filter(p => {
     if (!p.status) return false;
     if (categoria === "feminino" && !p.feminino) return false;
     if (categoria === "masculino" && p.feminino) return false;
+    if (tipo && p.tipo_roupa?.toLowerCase() !== tipo.toLowerCase()) return false;
     if (coresSelecionadas.length > 0 && !coresSelecionadas.includes(p.cor ?? "")) return false;
+    if (tamanhosSelecionados.length > 0) {
+      const tamanhosProd = p.tamanhos ?? [];
+      if (!tamanhosSelecionados.some(t => tamanhosProd.includes(t))) return false;
+    }
+    if (apenasPopular && !p.popular) return false;
+    if (apenasNovo && !p.novo) return false;
+    if (apenasSocial && !p.social) return false;
+    if (precoMax !== null) {
+      const precoEfetivo = p.em_sale && p.preco_sale != null ? p.preco_sale : p.preco;
+      if (precoEfetivo > precoMax) return false;
+    }
     return true;
   });
 
@@ -68,18 +125,34 @@ export function ListingPage() {
     produtos.some(p => p.cor === c.nome)
   );
 
+  const breadcrumbSuffix = tipo
+    ? ` > ${tipo}`
+    : categoria !== "todos"
+      ? ` > ${LABEL_CATEGORIA[categoria]}`
+      : "";
+
   return (
     <div className="page">
-      <Header activeTab="men" subNavItems={subNav} />
+      <Header />
 
       <div className="listing-page">
         {/* Sidebar */}
         <aside className="listing-sidebar">
-          <p className="listing-sidebar__count">
-            {carregando
-              ? "Carregando..."
-              : `${produtosFiltrados.length} Produto${produtosFiltrados.length !== 1 ? "s" : ""}`}
-          </p>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <p className="listing-sidebar__count">
+              {carregando
+                ? "Carregando..."
+                : `${produtosFiltrados.length} Produto${produtosFiltrados.length !== 1 ? "s" : ""}`}
+            </p>
+            {temFiltroAtivo && (
+              <button
+                onClick={limparFiltros}
+                style={{ fontSize: 11, color: "#737373", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}
+              >
+                Limpar filtros
+              </button>
+            )}
+          </div>
 
           {/* Categoria */}
           <div className="filter-section">
@@ -95,13 +168,50 @@ export function ListingPage() {
                   key={cat}
                   className="filter-checkbox"
                   style={{ cursor: "pointer" }}
-                  onClick={() => setCategoria(cat)}
+                  onClick={() => updateParam("categoria", cat === "todos" ? null : cat)}
                 >
                   <div
                     className="filter-checkbox__box"
                     style={{ background: categoria === cat ? "#262626" : undefined }}
                   />
                   <span className="filter-checkbox__label">{LABEL_CATEGORIA[cat]}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Tipo de roupa */}
+          <div className="filter-section">
+            <div className="filter-section__header">
+              <p className="filter-section__title">Tipo</p>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M1 9L6 3L11 9" stroke="#262626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <label
+                className="filter-checkbox"
+                style={{ cursor: "pointer" }}
+                onClick={() => updateParam("tipo", null)}
+              >
+                <div
+                  className="filter-checkbox__box"
+                  style={{ background: tipo === "" ? "#262626" : undefined }}
+                />
+                <span className="filter-checkbox__label">Todos</span>
+              </label>
+              {TIPOS_ROUPA.map(t => (
+                <label
+                  key={t}
+                  className="filter-checkbox"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => updateParam("tipo", tipo === t ? null : t)}
+                >
+                  <div
+                    className="filter-checkbox__box"
+                    style={{ background: tipo === t ? "#262626" : undefined }}
+                  />
+                  <span className="filter-checkbox__label">{t}</span>
                 </label>
               ))}
             </div>
@@ -121,11 +231,7 @@ export function ListingPage() {
                   <div
                     key={nome}
                     className="filter-color"
-                    onClick={() =>
-                      setCoresSelecionadas(prev =>
-                        prev.includes(nome) ? prev.filter(c => c !== nome) : [...prev, nome]
-                      )
-                    }
+                    onClick={() => toggleCor(nome)}
                     style={{ cursor: "pointer" }}
                   >
                     <div
@@ -153,18 +259,98 @@ export function ListingPage() {
             </div>
             <p style={{ fontSize: 12, color: "#737373", marginBottom: 8 }}>Cintura</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 12 }}>
-              {["30", "32", "34", "36", "38", "40"].map(s => (
-                <button key={s} style={{ border: "1px solid #dddbdc", padding: "4px 8px", fontSize: 12, cursor: "pointer", background: "#fff", color: "#262626" }}>
+              {TAMANHOS_CINTURA.map(s => (
+                <button
+                  key={s}
+                  onClick={() => toggleTamanho(s)}
+                  style={{
+                    border: "1px solid #dddbdc",
+                    padding: "4px 8px",
+                    fontSize: 12,
+                    cursor: "pointer",
+                    background: tamanhosSelecionados.includes(s) ? "#262626" : "#fff",
+                    color: tamanhosSelecionados.includes(s) ? "#fff" : "#262626",
+                  }}
+                >
                   {s}
                 </button>
               ))}
             </div>
             <p style={{ fontSize: 12, color: "#737373", marginBottom: 8 }}>Roupas</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-              {["PP", "P", "M", "G", "GG", "GGG", "GGGG"].map(s => (
-                <button key={s} style={{ border: "1px solid #dddbdc", padding: "4px 8px", fontSize: 12, cursor: "pointer", background: "#fff", color: "#262626" }}>
+              {TAMANHOS_ROUPAS.map(s => (
+                <button
+                  key={s}
+                  onClick={() => toggleTamanho(s)}
+                  style={{
+                    border: "1px solid #dddbdc",
+                    padding: "4px 8px",
+                    fontSize: 12,
+                    cursor: "pointer",
+                    background: tamanhosSelecionados.includes(s) ? "#262626" : "#fff",
+                    color: tamanhosSelecionados.includes(s) ? "#fff" : "#262626",
+                  }}
+                >
                   {s}
                 </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Destaques */}
+          <div className="filter-section">
+            <div className="filter-section__header">
+              <p className="filter-section__title">Destaques</p>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M1 9L6 3L11 9" stroke="#262626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {([
+                { label: "Novidades",  state: apenasNovo,   key: "novo" },
+                { label: "Populares", state: apenasPopular, key: "popular" },
+                { label: "Social",    state: apenasSocial,  key: "social" },
+              ] as const).map(({ label, state, key }) => (
+                <label
+                  key={label}
+                  className="filter-checkbox"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => updateParam(key, state ? null : "true")}
+                >
+                  <div
+                    className="filter-checkbox__box"
+                    style={{ background: state ? "#262626" : undefined }}
+                  />
+                  <span className="filter-checkbox__label">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Preço máximo */}
+          <div className="filter-section">
+            <div className="filter-section__header">
+              <p className="filter-section__title">Preço</p>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M1 9L6 3L11 9" stroke="#262626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {[null, 100, 200, 300].map(val => (
+                <label
+                  key={val ?? "todos"}
+                  className="filter-checkbox"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => updateParam("preco_max", val === null ? null : String(val))}
+                >
+                  <div
+                    className="filter-checkbox__box"
+                    style={{ background: precoMax === val ? "#262626" : undefined }}
+                  />
+                  <span className="filter-checkbox__label">
+                    {val === null ? "Todos" : `Até ${fmtPreco(val)}`}
+                  </span>
+                </label>
               ))}
             </div>
           </div>
@@ -172,8 +358,18 @@ export function ListingPage() {
 
         {/* Conteúdo principal */}
         <main className="listing-main">
-          <p className="listing-breadcrumb">Início &gt; Produtos</p>
-          <p className="listing-title">Roupas e Vestuário — Novidades</p>
+          <p className="listing-breadcrumb">
+            Início &gt; Produtos{breadcrumbSuffix}
+            {apenasPopular && " > Populares"}
+            {precoMax !== null && ` > Até ${fmtPreco(precoMax)}`}
+          </p>
+          <p className="listing-title">
+            {tipo
+              ? tipo
+              : categoria !== "todos"
+                ? LABEL_CATEGORIA[categoria]
+                : "Roupas e Vestuário — Novidades"}
+          </p>
           <p className="listing-featured-label">Destaques</p>
 
           {erro && (
@@ -196,17 +392,36 @@ export function ListingPage() {
                   >
                     <div className="listing-product-card__img">
                       <img
-                        src={produto.imagem_url ?? listProd1}
+                        src={produto.imagem_url ?? ""}
                         alt={produto.nome}
-                        onError={e => { (e.target as HTMLImageElement).src = listProd1; }}
                       />
-                      {produto.popular && (
+                      {produto.em_sale && produto.desconto_pct != null ? (
+                        <div className="listing-product-card__badge listing-product-card__badge--sale">
+                          −{produto.desconto_pct}%
+                        </div>
+                      ) : produto.novo ? (
+                        <span style={{
+                          position: "absolute", top: 10, left: 10,
+                          fontSize: 11, fontWeight: 700, color: "#fff",
+                          letterSpacing: "1px", textTransform: "uppercase",
+                          textShadow: "0 1px 4px rgba(0,0,0,0.55)",
+                        }}>
+                          Novo!
+                        </span>
+                      ) : produto.popular ? (
                         <div className="listing-product-card__badge">Popular</div>
-                      )}
+                      ) : null}
                     </div>
                     <p className="listing-product-card__name">{produto.nome}</p>
                     <div className="listing-product-card__price-row">
-                      <span style={{ color: "#262626" }}>{fmtPreco(produto.preco)}</span>
+                      {produto.em_sale && produto.preco_sale != null ? (
+                        <>
+                          <span style={{ color: "#c0392b", fontWeight: 600 }}>{fmtPreco(produto.preco_sale)}</span>
+                          <span style={{ color: "#b0aeae", textDecoration: "line-through", fontSize: 12, marginLeft: 6 }}>{fmtPreco(produto.preco)}</span>
+                        </>
+                      ) : (
+                        <span style={{ color: "#262626" }}>{fmtPreco(produto.preco)}</span>
+                      )}
                     </div>
                     {produto.cor && (
                       <p className="listing-product-card__color">{corInfo?.label ?? produto.cor}</p>

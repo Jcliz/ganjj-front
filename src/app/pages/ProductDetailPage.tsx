@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { useCart } from "../../contexts/CartContext";
@@ -100,6 +101,7 @@ function formatarPreco(valor: number): string {
 }
 
 export function ProductDetailPage() {
+  usePageTitle("Produto");
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { usuario } = useAuth();
@@ -116,6 +118,7 @@ export function ProductDetailPage() {
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState("M");
   const [adicionando, setAdicionando] = useState(false);
   const [msgAdicionado, setMsgAdicionado] = useState("");
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -197,9 +200,25 @@ export function ProductDetailPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <p style={{ fontSize: 20, lineHeight: "28px", color: "#262626" }}>{produto.nome}</p>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <span style={{ color: "#262626", fontSize: 16, fontWeight: 600 }}>
-                {formatarPreco(produto.preco)}
-              </span>
+              {produto.em_sale && produto.preco_sale != null ? (
+                <>
+                  <span style={{ color: "#d0021b", fontSize: 16, fontWeight: 600 }}>
+                    {formatarPreco(produto.preco_sale)}
+                  </span>
+                  <span style={{ color: "#737373", fontSize: 14, textDecoration: "line-through" }}>
+                    {formatarPreco(produto.preco)}
+                  </span>
+                  {produto.desconto_pct != null && (
+                    <span style={{ background: "#d0021b", color: "#fff", fontSize: 11, fontWeight: 700, padding: "2px 6px", borderRadius: 3 }}>
+                      -{produto.desconto_pct}%
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span style={{ color: "#262626", fontSize: 16, fontWeight: 600 }}>
+                  {formatarPreco(produto.preco)}
+                </span>
+              )}
             </div>
 
           </div>
@@ -261,7 +280,7 @@ export function ProductDetailPage() {
             <button
               disabled={adicionando || produto.estoque === 0}
               onClick={async () => {
-                if (!usuario) { navigate("/login"); return; }
+                if (!usuario) { setShowLoginModal(true); return; }
                 setAdicionando(true);
                 setMsgAdicionado("");
                 try {
@@ -353,6 +372,40 @@ export function ProductDetailPage() {
       )}
 
       <Footer />
+
+      {showLoginModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          zIndex: 1000,
+        }} onClick={() => setShowLoginModal(false)}>
+          <div style={{
+            background: "#fff", padding: "36px 32px", maxWidth: 380, width: "90%",
+            textAlign: "center",
+          }} onClick={e => e.stopPropagation()}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 16 }}>
+              <circle cx="12" cy="8" r="4" stroke="#262626" strokeWidth="1.5" />
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#262626" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            <p style={{ fontSize: 16, fontWeight: 600, color: "#262626", margin: "0 0 8px", letterSpacing: "0.5px" }}>
+              Login necessário
+            </p>
+            <p style={{ fontSize: 13, color: "#737373", margin: "0 0 24px", lineHeight: 1.6 }}>
+              Para adicionar itens ao carrinho você precisa estar autenticado.
+            </p>
+            <button
+              onClick={() => navigate("/login")}
+              style={{
+                width: "100%", padding: "12px 0", background: "#262626", color: "#fff",
+                border: "none", cursor: "pointer", fontSize: 13, letterSpacing: "1px",
+                fontWeight: 600,
+              }}
+            >
+              IR PARA O LOGIN
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

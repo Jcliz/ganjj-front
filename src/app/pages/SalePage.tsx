@@ -1,44 +1,25 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import {
-  listProd1, listProd2, listProd3, listProd4,
-  listProd5, listProd6, listProd7, listProd8,
-  catShirts, catDenim, catOuterwear,
-} from "../../assets/assets";
+import { catShirts, catDenim, catOuterwear } from "../../assets/assets";
+import { saleApi, type SaleItem } from "../../lib/api";
 
-type Category = "Todos" | "Superiores" | "Inferiores" | "Inverno";
+type FilterCategoria = "Todos" | "Superiores" | "Inferiores" | "Inverno";
+type SortKey = "featured" | "price-asc" | "price-desc" | "pct";
 
-interface SaleProduct {
-  id: number;
-  name: string;
-  category: Category;
-  originalPrice: number;
-  salePrice: number;
-  img: string;
-  color: string;
-  tag?: string;
+const CATEGORIES: FilterCategoria[] = ["Todos", "Superiores", "Inferiores", "Inverno"];
+
+function fmtPreco(n: number) {
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-const SALE_PRODUCTS: SaleProduct[] = [
-  { id: 1, name: "Camiseta oversized", category: "Superiores", originalPrice: 30, salePrice: 18, img: listProd1, color: "White", tag: "40% OFF" },
-  { id: 2, name: "Turtleneck com algodão orgânico", category: "Superiores", originalPrice: 45, salePrice: 27, img: listProd2, color: "Bone", tag: "40% OFF" },
-  { id: 3, name: "Slim Jim", category: "Inferiores", originalPrice: 88, salePrice: 55, img: listProd3, color: "Dark Indigo", tag: "37% OFF" },
-  { id: 4, name: "Jeans Wide-leg", category: "Inferiores", originalPrice: 98, salePrice: 59, img: listProd4, color: "Vintage", tag: "40% OFF" },
-  { id: 5, name: "Jaqueta ReNew Sherpa", category: "Inverno", originalPrice: 168, salePrice: 98, img: listProd5, color: "Camel", tag: "41% OFF" },
-  { id: 6, name: "Turtleneck Marino", category: "Todos", originalPrice: 120, salePrice: 72, img: listProd6, color: "Heather", tag: "40% OFF" },
-  { id: 7, name: "Crewneck Cashmere", category: "Todos", originalPrice: 175, salePrice: 105, img: listProd7, color: "Cream", tag: "40% OFF" },
-  { id: 8, name: "Market Tote", category: "Todos", originalPrice: 65, salePrice: 39, img: listProd8, color: "Natural", tag: "40% OFF" },
-];
-
-const CATEGORIES: Category[] = ["Todos", "Superiores", "Inferiores", "Inverno"];
-
 function getTimeLeft() {
-  const endDate = new Date();
-  endDate.setDate(endDate.getDate() + 3);
-  endDate.setHours(23, 59, 59, 0);
-  const diff = endDate.getTime() - Date.now();
+  const end = new Date();
+  end.setDate(end.getDate() + 3);
+  end.setHours(23, 59, 59, 0);
+  const diff = end.getTime() - Date.now();
   if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
   return {
     d: Math.floor(diff / 86400000),
@@ -57,21 +38,24 @@ function CountdownUnit({ value, label }: { value: number; label: string }) {
   );
 }
 
-function SaleCard({ product }: { product: SaleProduct }) {
+function SaleCard({ item }: { item: SaleItem }) {
   const navigate = useNavigate();
-  const pctOff = Math.round((1 - product.salePrice / product.originalPrice) * 100);
   return (
-    <div className="sale-card" onClick={() => navigate(`/product/${product.id}`)}>
+    <div className="sale-card" onClick={() => navigate(`/product/${item.id}`)}>
       <div className="sale-card__img-wrap">
-        <img src={product.img} alt={product.name} className="sale-card__img" />
-        <span className="sale-card__badge">−{pctOff}%</span>
+        <img
+          src={item.imagem_url ?? ""}
+          alt={item.nome}
+          className="sale-card__img"
+        />
+        <span className="sale-card__badge">−{item.desconto_pct}%</span>
       </div>
       <div className="sale-card__info">
-        <p className="sale-card__name">{product.name}</p>
-        <p className="sale-card__color">{product.color}</p>
+        <p className="sale-card__name">{item.nome}</p>
+        {item.cor && <p className="sale-card__color">{item.cor}</p>}
         <div className="sale-card__pricing">
-          <span className="sale-card__sale-price">${product.salePrice}</span>
-          <span className="sale-card__orig-price">${product.originalPrice}</span>
+          <span className="sale-card__sale-price">{fmtPreco(item.preco_sale)}</span>
+          <span className="sale-card__orig-price">{fmtPreco(item.preco)}</span>
         </div>
       </div>
     </div>
@@ -79,24 +63,34 @@ function SaleCard({ product }: { product: SaleProduct }) {
 }
 
 export function SalePage() {
-  const [activeCategory, setActiveCategory] = useState<Category>("Todos");
-  const [sortBy, setSortBy] = useState<"featured" | "price-asc" | "price-desc" | "pct">("featured");
-  const [timeLeft, setTimeLeft] = useState(getTimeLeft());
+  usePageTitle("Sale");
+  const [items, setItems]             = useState<SaleItem[]>([]);
+  const [carregando, setCarregando]   = useState(true);
+  const [erro, setErro]               = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<FilterCategoria>("Todos");
+  const [sortBy, setSortBy]           = useState<SortKey>("featured");
+  const [timeLeft, setTimeLeft]       = useState(getTimeLeft());
+
+  useEffect(() => {
+    saleApi.list()
+      .then(data => setItems(data))
+      .catch(e => setErro((e as Error).message ?? "Erro ao carregar produtos em sale."))
+      .finally(() => setCarregando(false));
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => setTimeLeft(getTimeLeft()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  const filtered = SALE_PRODUCTS.filter(
-    p => activeCategory === "Todos" || p.category === activeCategory
+  const filtered = items.filter(
+    p => activeCategory === "Todos" || p.categoria === activeCategory
   );
 
   const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "price-asc") return a.salePrice - b.salePrice;
-    if (sortBy === "price-desc") return b.salePrice - a.salePrice;
-    if (sortBy === "pct") return (b.originalPrice - b.salePrice) / b.originalPrice
-      - (a.originalPrice - a.salePrice) / a.originalPrice;
+    if (sortBy === "price-asc")  return a.preco_sale - b.preco_sale;
+    if (sortBy === "price-desc") return b.preco_sale - a.preco_sale;
+    if (sortBy === "pct")        return b.desconto_pct - a.desconto_pct;
     return a.id - b.id;
   });
 
@@ -126,14 +120,14 @@ export function SalePage() {
 
         <div className="sale-hero__tiles">
           {[
-            { label: "Superiores", img: catShirts, cat: "Superiores" },
-            { label: "Inferiores", img: catDenim, cat: "Inferiores" },
-            { label: "Inverno", img: catOuterwear, cat: "Inverno" },
+            { label: "Superiores", img: catShirts,   cat: "Superiores" },
+            { label: "Inferiores", img: catDenim,     cat: "Inferiores" },
+            { label: "Inverno",    img: catOuterwear, cat: "Inverno"    },
           ].map(tile => (
             <div
               key={tile.label}
               className="sale-hero__tile"
-              onClick={() => setActiveCategory(tile.cat as Category)}
+              onClick={() => setActiveCategory(tile.cat as FilterCategoria)}
             >
               <img src={tile.img} alt={tile.label} className="sale-hero__tile-img" />
               <div className="sale-hero__tile-overlay">
@@ -163,7 +157,7 @@ export function SalePage() {
           <select
             className="sale-sort__select"
             value={sortBy}
-            onChange={e => setSortBy(e.target.value as typeof sortBy)}
+            onChange={e => setSortBy(e.target.value as SortKey)}
           >
             <option value="featured">Misturado</option>
             <option value="price-asc">Preço: baixo para alto</option>
@@ -175,16 +169,27 @@ export function SalePage() {
 
       <div className="sale-results-row">
         <p className="sale-results-count">
-          Mostrando <strong>{sorted.length}</strong> ite{sorted.length !== 1 ? "ns" : "m"}
-          {activeCategory !== "Todos" ? ` em ${activeCategory}` : ""}
+          {carregando
+            ? "Carregando..."
+            : <>Mostrando <strong>{sorted.length}</strong> ite{sorted.length !== 1 ? "ns" : "m"}{activeCategory !== "Todos" ? ` em ${activeCategory}` : ""}</>
+          }
         </p>
         <p className="sale-results-note">Frete grátis em compras acima de R$ 100,00</p>
       </div>
 
+      {erro && (
+        <p style={{ color: "#d0021b", fontSize: 14, padding: "20px 40px" }}>{erro}</p>
+      )}
+
       <div className="sale-grid">
-        {sorted.map(product => (
-          <SaleCard key={product.id} product={product} />
+        {sorted.map(item => (
+          <SaleCard key={item.id} item={item} />
         ))}
+        {!carregando && !erro && sorted.length === 0 && (
+          <p style={{ color: "#737373", fontSize: 14, gridColumn: "1/-1", padding: "20px 0" }}>
+            Nenhum produto em sale nesta categoria.
+          </p>
+        )}
       </div>
 
       <div className="sale-policy-strip">

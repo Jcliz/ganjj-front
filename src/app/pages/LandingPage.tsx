@@ -1,3 +1,4 @@
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import {
@@ -9,21 +10,22 @@ import {
 } from "../../assets/assets";
 
 const categoryItems = [
-  { img: catShirts, label: "CAMISAS", dir: "/listing" },
-  { img: catDenim, label: "JEANS", dir: "/listing" },
-  { img: catTees, label: "TEES", dir: "/listing" },
-  { img: catPants, label: "CALÇAS", dir: "/listing" },
-  { img: catSweaters, label: "CASACOS", dir: "/listing" },
-  { img: catOuterwear, label: "JAQUETAS", dir: "/listing" },
+  { img: catShirts,   label: "CAMISAS",  dir: "/listing?tipo=Camisas" },
+  { img: catDenim,    label: "JEANS",    dir: "/listing?tipo=Jeans" },
+  { img: catTees,     label: "TEES",     dir: "/listing?tipo=Camisetas" },
+  { img: catPants,    label: "CALÇAS",   dir: "/listing?tipo=Cal%C3%A7as" },
+  { img: catSweaters, label: "CASACOS",  dir: "/listing?tipo=Casacos" },
+  { img: catOuterwear,label: "JAQUETAS", dir: "/listing?tipo=Jaquetas" },
 ];
 
 const bannerItems = [
-  { img: bannerNewArrivals, title: "Novos", cta: "PEÇAS MAIS NOVAS", dir: "/listing" },
-  { img: bannerBestSellers, title: "Populares", cta: "COMPRE OS POPULARES", dir: "/listing" },
-  { img: bannerHoliday, title: "Sale GANJJ", cta: "ACESSE A SALE", dir: "/sale" },
+  { img: bannerNewArrivals, title: "Novos",      cta: "PEÇAS MAIS NOVAS",      dir: "/listing" },
+  { img: bannerBestSellers, title: "Populares",  cta: "COMPRE OS POPULARES",   dir: "/listing?popular=true" },
+  { img: bannerHoliday,     title: "Sale GANJJ", cta: "ACESSE A SALE",         dir: "/sale" },
 ];
 
 export function LandingPage() {
+  usePageTitle("");
   return (
     <div className="page">
       <Header />

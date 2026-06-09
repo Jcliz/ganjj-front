@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { Logo } from "../components/Logo";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 function ArrowLeftIcon() {
   return (
@@ -23,6 +24,7 @@ function MailIcon() {
 type Step = "email" | "sent";
 
 export function ForgotPasswordPage() {
+  usePageTitle("Esqueci minha senha");
   const navigate = useNavigate();
   const [step, setStep]         = useState<Step>("email");
   const [email, setEmail]       = useState("");

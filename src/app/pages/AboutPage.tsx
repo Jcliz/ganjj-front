@@ -1,3 +1,4 @@
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import {
@@ -5,6 +6,7 @@ import {
 } from "../../assets/assets";
 
 export function AboutPage() {
+  usePageTitle("Sobre");
   return (
     <div className="page">
       <Header activeTab="sobre" />

@@ -17,6 +17,8 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { CheckoutPage } from "./pages/CheckoutPage";
 import { SalePage } from "./pages/SalePage";
 import { LookbookPage } from "./pages/LookbookPage";
+import { MyOrdersPage } from "./pages/MyOrdersPage";
+import { AdminOrdersPage } from "./pages/AdminOrdersPage";
 
 export const router = createBrowserRouter([
   { path: "/",                  Component: LandingPage          },
@@ -34,7 +36,9 @@ export const router = createBrowserRouter([
   { path: "/checkout",          Component: CheckoutPage         },
   { path: "/sale",              Component: SalePage             },
   { path: "/lookbook",          Component: LookbookPage         },
+  { path: "/my-orders",         Component: MyOrdersPage         },
   { path: "/admin/dashboard",   Component: AdminDashboardPage   },
   { path: "/admin/users",       Component: AdminUsersPage       },
   { path: "/admin/products",    Component: AdminProductsPage    },
+  { path: "/admin/orders",      Component: AdminOrdersPage      },
 ]);

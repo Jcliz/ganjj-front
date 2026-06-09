@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { AdminSidebar } from "../components/AdminSidebar";
 
 function SearchIcon() {
@@ -133,7 +134,7 @@ async function getErrorMessage(response: Response, fallback: string) {
 }
 
 async function loadUsersFromApi(): Promise<User[]> {
-  const response = await fetch(USERS_ENDPOINT);
+  const response = await fetch(USERS_ENDPOINT, { credentials: "include" });
   if (!response.ok) {
     throw new Error(await getErrorMessage(response, "Falha ao carregar usuários."));
   }
@@ -149,6 +150,7 @@ async function loadUsersFromApi(): Promise<User[]> {
 async function createUserInApi(payload: UserPayload): Promise<User> {
   const response = await fetch(USERS_ENDPOINT, {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
@@ -164,6 +166,7 @@ async function createUserInApi(payload: UserPayload): Promise<User> {
 async function updateUserInApi(id: number, payload: UserPayload): Promise<User> {
   const response = await fetch(`${USERS_ENDPOINT}/${id}`, {
     method: "PUT",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
@@ -179,6 +182,7 @@ async function updateUserInApi(id: number, payload: UserPayload): Promise<User> 
 async function deleteUserInApi(id: number): Promise<void> {
   const response = await fetch(`${USERS_ENDPOINT}/${id}`, {
     method: "DELETE",
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -393,6 +397,7 @@ function DeleteModal({ user, onConfirm, onClose }: { user: User; onConfirm: () =
 const PAGE_SIZE = 6;
 
 export function AdminUsersPage() {
+  usePageTitle("Usuários");
   useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { useAuth } from "../../contexts/AuthContext";
@@ -108,6 +109,7 @@ const USER_TABS: { key: SettingsTab; label: string; icon: React.ReactNode }[] = 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function SettingsPage() {
+  usePageTitle("Configurações");
   const navigate = useNavigate();
   const { usuario, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");

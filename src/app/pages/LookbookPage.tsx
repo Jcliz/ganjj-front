@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -164,6 +165,7 @@ function Lightbox({ photo, onClose, onPrev, onNext }: LightboxProps) {
 }
 
 export function LookbookPage() {
+  usePageTitle("Lookbook");
   const [activeCol, setActiveCol] = useState<CollectionKey>("tudo");
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 

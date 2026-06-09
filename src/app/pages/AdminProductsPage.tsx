@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { AdminSidebar } from "../components/AdminSidebar";
+import { produtoApi, uploadApi, type Produto, type ProdutoPayload } from "../../lib/api";
 
 function SearchIcon() {
   return (
@@ -59,401 +61,210 @@ function PlusIcon() {
   );
 }
 
-function ImageIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <rect x="3" y="3" width="18" height="18" rx="2" stroke="#b0aeae" strokeWidth="1.5" />
-      <circle cx="8.5" cy="8.5" r="1.5" stroke="#b0aeae" strokeWidth="1.5" />
-      <polyline points="21,15 16,10 5,21" stroke="#b0aeae" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+const COR_PALETTE: { nome: string; label: string; hex: string }[] = [
+  { nome: "Black",  label: "Preto",    hex: "#1a1a1a" },
+  { nome: "Blue",   label: "Azul",     hex: "#1a3a6b" },
+  { nome: "Brown",  label: "Marrom",   hex: "#5a3825" },
+  { nome: "Green",  label: "Verde",    hex: "#2d4a2d" },
+  { nome: "Grey",   label: "Cinza",    hex: "#888888" },
+  { nome: "Orange", label: "Laranja",  hex: "#d46b1a" },
+  { nome: "Pink",   label: "Rosa",     hex: "#e8a5b0" },
+  { nome: "Red",    label: "Vermelho", hex: "#c0392b" },
+  { nome: "Tan",    label: "Bege",     hex: "#c8a87a" },
+  { nome: "Sage",   label: "Sálvia",   hex: "#8a9e8a" },
+  { nome: "Navy",   label: "Marinho",  hex: "#1c2d4a" },
+  { nome: "Cream",  label: "Creme",    hex: "#f5f0e8" },
+];
 
-type Category = "Women" | "Men";
-type ProdStatus = "Active" | "Inactive";
+const TIPOS_ROUPA = ["Camisas", "Camisetas", "Casacos", "Jaquetas", "Calças", "Jeans"];
+const TAMANHOS_CINTURA = ["30", "32", "34", "36", "38", "40"];
+const TAMANHOS_ROUPAS = ["PP", "P", "M", "G", "GG", "GGG", "GGGG"];
 
-interface Product {
-  id: number;
-  name: string;
-  sku: string;
-  category: Category;
-  description: string;
-  price: number;
-  comparePrice: number | null;
-  stock: number;
-  color: string;
-  colorName: string;
-  status: ProdStatus;
-  createdAt: string;
-}
-
-type ProductPayload = Omit<Product, "id" | "createdAt">;
-
-const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ||
-  "http://localhost:3000";
-const PRODUCTS_ENDPOINT = `${API_BASE_URL}/api/produtos`;
-
-const SWATCH_PALETTE: Record<string, string> = {
-  Uniform: "#1a1a1a",
-  "Cream": "#f5f0e8",
-  "Slate": "#5c6b7a",
-  "Cognac": "#8b4a2f",
-  "Forest": "#2e4a3a",
-  "Dusty Rose": "#c49a9a",
-  "Ivory": "#f5f2ec",
-  "Navy": "#1c2d4a",
-  "Sand": "#c8b89a",
-  "Sage": "#8a9e8a",
-  "Bone": "#e8e2d8",
-  "Black": "#262626",
-};
-
-const CATEGORIES: Category[] = ["Women", "Men"];
-const PROD_STATUSES: ProdStatus[] = ["Active", "Inactive"];
-const COLOR_OPTIONS = Object.entries(SWATCH_PALETTE).map(([name, hex]) => ({ name, hex }));
-
-function hexToColorName(hex?: string | null) {
-  if (!hex) return "Black";
-  const found = Object.entries(SWATCH_PALETTE).find(([, paletteHex]) => paletteHex.toLowerCase() === hex.toLowerCase());
-  return found ? found[0] : "Black";
-}
-
-function boolToStatus(value: unknown): ProdStatus {
-  if (value === true || value === "Active") return "Active";
-  return "Inactive";
-}
-
-function parseApiProduct(raw: any): Product {
-  const category: Category = raw.feminino ? "Women" : "Men";
-  return {
-    id: Number(raw.id),
-    name: String(raw.nome ?? ""),
-    sku: generateSku(String(raw.nome ?? "PRD"), category, Number(raw.id ?? 0)),
-    category,
-    description: String(raw.descricao ?? ""),
-    price: Number(raw.preco ?? 0),
-    comparePrice: null,
-    stock: Number(raw.estoque ?? 0),
-    color: String(raw.cor ?? "#262626"),
-    colorName: hexToColorName(raw.cor),
-    status: boolToStatus(raw.status),
-    createdAt: String(raw.criado_em ?? new Date().toISOString()),
-  };
-}
-
-function mapPayloadToApi(payload: ProductPayload) {
-  return {
-    nome: payload.name,
-    descricao: payload.description,
-    preco: payload.price,
-    estoque: payload.stock,
-    cor: payload.color,
-    status: payload.status === "Active",
-    feminino: payload.category === "Women",
-    popular: payload.comparePrice != null,
-    imagem_url: null,
-  };
-}
-
-async function readResponseBody(response: Response) {
-  try {
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
-async function getErrorMessage(response: Response, fallback: string) {
-  const body = await readResponseBody(response);
-  if (body && typeof body.error === "string") {
-    return body.error;
-  }
-  return fallback;
-}
-
-async function loadProductsFromApi() {
-  const response = await fetch(PRODUCTS_ENDPOINT);
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Falha ao carregar produtos."));
-  }
-
-  const body = await readResponseBody(response);
-  if (!Array.isArray(body)) {
-    return [] as Product[];
-  }
-
-  return body.map(parseApiProduct);
-}
-
-async function createProductInApi(payload: ProductPayload) {
-  const response = await fetch(PRODUCTS_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(mapPayloadToApi(payload)),
-  });
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Falha ao criar produto."));
-  }
-
-  const body = await readResponseBody(response);
-  return parseApiProduct(body || {});
-}
-
-async function updateProductInApi(id: number, payload: ProductPayload) {
-  const response = await fetch(`${PRODUCTS_ENDPOINT}/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(mapPayloadToApi(payload)),
-  });
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Falha ao atualizar produto."));
-  }
-
-  const body = await readResponseBody(response);
-  return parseApiProduct(body || {});
-}
-
-async function deleteProductInApi(id: number) {
-  const response = await fetch(`${PRODUCTS_ENDPOINT}/${id}`, {
-    method: "DELETE",
-  });
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Falha ao excluir produto."));
-  }
-}
-
-function fmtPrice(n: number) {
-  return `$${n.toFixed(2).replace(".00", "")}`;
+function fmtPreco(n: number) {
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("pt-BR", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function categoryLabel(category: Category) {
-  const labels: Record<Category, string> = {
-    Women: "Feminino",
-    Men: "Masculino",
-  };
-  return labels[category];
-}
-
-function prodStatusLabel(status: ProdStatus) {
-  const labels: Record<ProdStatus, string> = {
-    Active: "Ativo",
-    Inactive: "Inativo",
-  };
-  return labels[status];
-}
-
-function generateSku(name: string, cat: Category, id: number) {
-  const catCode: Record<Category, string> = { Women: "W", Men: "M" };
-  const word = name.trim().split(/\s+/).filter(Boolean)[0]?.slice(0, 3).toUpperCase() ?? "PRD";
-  return `EVR-${catCode[cat]}-${word}-${String(id).padStart(3, "0")}`;
-}
-
-function StatusBadge({ status }: { status: ProdStatus }) {
-  const cfg: Record<ProdStatus, { dot: string; label: string }> = {
-    Active: { dot: "#2a7a3b", label: "#2a7a3b" },
-    Inactive: { dot: "#d0021b", label: "#d0021b" },
-  };
+function StatusBadge({ status }: { status: boolean }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: cfg[status].label, letterSpacing: "0.4px" }}>
-      <span style={{ width: 6, height: 6, borderRadius: "50%", background: cfg[status].dot, flexShrink: 0 }} />
-      {prodStatusLabel(status)}
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: status ? "#2a7a3b" : "#737373", letterSpacing: "0.4px" }}>
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: status ? "#2a7a3b" : "#b0aeae", flexShrink: 0 }} />
+      {status ? "Ativo" : "Inativo"}
     </span>
   );
 }
 
 function StockBadge({ stock }: { stock: number }) {
-  if (stock === 0) return <span style={{ fontSize: 11, color: "#d0021b", letterSpacing: "0.4px" }}>Sem estoque</span>;
-  if (stock < 10) return <span style={{ fontSize: 11, color: "#f5a623", letterSpacing: "0.4px" }}>Estoque baixo · {stock}</span>;
-  return <span style={{ fontSize: 11, color: "#262626", letterSpacing: "0.4px" }}>{stock}</span>;
+  if (stock === 0) return <span style={{ fontSize: 11, color: "#d0021b" }}>Sem estoque</span>;
+  if (stock < 10)  return <span style={{ fontSize: 11, color: "#f5a623" }}>Baixo · {stock}</span>;
+  return <span style={{ fontSize: 11, color: "#262626" }}>{stock}</span>;
 }
 
-function ProductThumb({ color, colorName, name }: { color: string; colorName: string; name: string }) {
-  const isLight = parseInt(color.slice(1), 16) > 0xaaaaaa;
+function ProductThumb({ produto }: { produto: Produto }) {
+  const corInfo = COR_PALETTE.find(c => c.nome === produto.cor);
+  const hex = corInfo?.hex ?? "#dddbdc";
+  const isLight = parseInt(hex.slice(1), 16) > 0xaaaaaa;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <div style={{
-        width: 40, height: 40, background: color,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        flexShrink: 0, border: isLight ? "1px solid #dddbdc" : "none",
+        width: 40, height: 40, background: hex, flexShrink: 0,
+        border: isLight ? "1px solid #dddbdc" : "none",
+        overflow: "hidden",
       }}>
-        <ImageIcon />
+        {produto.imagem_url && (
+          <img src={produto.imagem_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        )}
       </div>
       <div>
-        <p style={{ fontSize: 13, color: "#262626", letterSpacing: "0.2px", lineHeight: "18px", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {name}
+        <p style={{ fontSize: 13, color: "#262626", lineHeight: "18px", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {produto.nome}
         </p>
-        <p style={{ fontSize: 11, color: "#737373", letterSpacing: "0.4px", lineHeight: "16px" }}>
-          {colorName}
+        <p style={{ fontSize: 11, color: "#737373", lineHeight: "16px" }}>
+          {corInfo?.label ?? produto.cor ?? "—"}
+          {produto.tipo_roupa && ` · ${produto.tipo_roupa}`}
         </p>
       </div>
     </div>
   );
 }
 
-interface ProdFormErrors {
-  name?: string; price?: string; stock?: string; sku?: string;
-}
-
-interface ProdFormPayload {
-  name: string; sku: string; category: Category; description: string;
-  price: number; comparePrice: number | null; stock: number;
-  color: string; colorName: string; status: ProdStatus;
-}
+interface FormErrors { nome?: string; preco?: string; estoque?: string; }
 
 interface ProdFormProps {
-  initial?: Product | null;
-  onSave: (data: ProdFormPayload) => void;
+  initial?: Produto | null;
+  onSave: (data: ProdutoPayload) => Promise<void>;
   onClose: () => void;
 }
 
 function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
   const isEdit = !!initial;
-  const [name, setName] = useState(initial?.name ?? "");
-  const [sku, setSku] = useState(initial?.sku ?? "");
-  const [category, setCategory] = useState<Category>(initial?.category ?? "Women");
-  const [description, setDescription] = useState(initial?.description ?? "");
-  const [price, setPrice] = useState(String(initial?.price ?? ""));
-  const [comparePrice, setComparePrice] = useState(String(initial?.comparePrice ?? ""));
-  const [stock, setStock] = useState(String(initial?.stock ?? ""));
-  const [colorName, setColorName] = useState(initial?.colorName ?? "Black");
-  const [status, setStatus] = useState<ProdStatus>(initial?.status ?? "Active");
-  const [errors, setErrors] = useState<ProdFormErrors>({});
+  const [nome, setNome] = useState(initial?.nome ?? "");
+  const [descricao, setDescricao] = useState(initial?.descricao ?? "");
+  const [preco, setPreco] = useState(String(initial?.preco ?? ""));
+  const [estoque, setEstoque] = useState(String(initial?.estoque ?? ""));
+  const [cor, setCor] = useState(initial?.cor ?? "");
+  const [status, setStatus] = useState(initial?.status ?? true);
+  const [imagemUrl, setImagemUrl] = useState(initial?.imagem_url ?? "");
+  const [popular, setPopular] = useState(initial?.popular ?? false);
+  const [novo, setNovo]       = useState(initial?.novo    ?? true);
+  const [social, setSocial]   = useState(initial?.social  ?? false);
+  const [feminino, setFeminino] = useState(initial?.feminino ?? false);
+  const [tipoRoupa, setTipoRoupa] = useState(initial?.tipo_roupa ?? "");
+  const [tamanhos, setTamanhos] = useState<string[]>(initial?.tamanhos ?? []);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [saving, setSaving] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const selectedColor = SWATCH_PALETTE[colorName] ?? "#262626";
+  function toggleTamanho(s: string) {
+    setTamanhos(prev => prev.includes(s) ? prev.filter(t => t !== s) : [...prev, s]);
+  }
 
-  function validate(): ProdFormErrors {
-    const e: ProdFormErrors = {};
-    if (!name.trim()) e.name = "Nome do produto é obrigatório.";
-    if (!sku.trim()) e.sku = "SKU é obrigatório.";
-    const p = parseFloat(price);
-    if (isNaN(p) || p < 0) e.price = "Informe um preço válido.";
-    const s = parseInt(stock);
-    if (isNaN(s) || s < 0) e.stock = "Informe uma quantidade válida.";
+  async function handleFileChange(ev: React.ChangeEvent<HTMLInputElement>) {
+    const file = ev.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const url = await uploadApi.uploadImagem(file);
+      setImagemUrl(url);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Erro no upload");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  function validate(): FormErrors {
+    const e: FormErrors = {};
+    if (!nome.trim()) e.nome = "Nome é obrigatório.";
+    const p = parseFloat(preco);
+    if (isNaN(p) || p < 0) e.preco = "Informe um preço válido.";
+    const s = parseInt(estoque);
+    if (isNaN(s) || s < 0) e.estoque = "Informe uma quantidade válida.";
     return e;
   }
 
-  function handleSubmit(ev: React.SyntheticEvent) {
+  async function handleSubmit(ev: React.SyntheticEvent) {
     ev.preventDefault();
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    const cp = parseFloat(comparePrice);
-    onSave({
-      name, sku, category, description,
-      price: parseFloat(price),
-      comparePrice: (!isNaN(cp) && cp > 0) ? cp : null,
-      stock: parseInt(stock),
-      color: selectedColor, colorName,
-      status,
-    });
+    setSaving(true);
+    try {
+      await onSave({
+        nome: nome.trim(),
+        descricao: descricao.trim() || undefined,
+        preco: parseFloat(preco),
+        estoque: parseInt(estoque),
+        cor: cor || undefined,
+        status,
+        imagem_url: imagemUrl.trim() || undefined,
+        popular,
+        feminino,
+        novo,
+        social,
+        tipo_roupa: tipoRoupa || undefined,
+        tamanhos: tamanhos.length > 0 ? tamanhos : undefined,
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function autoGenSku() {
-    setSku(generateSku(name, category, Math.floor(Math.random() * 900 + 100)));
-  }
-
-  function input(
+  function inputField(
     id: string, label: string, val: string, set: (v: string) => void,
-    opts?: { type?: string; placeholder?: string; hint?: string; error?: string; rightSlot?: React.ReactNode }
+    opts?: { type?: string; placeholder?: string; error?: string; hint?: string }
   ) {
     return (
       <div className="admin-form__field">
         <label className="admin-form__label" htmlFor={id}>{label}</label>
-        <div style={{ position: "relative" }}>
-          <input
-            id={id}
-            className="admin-form__input"
-            type={opts?.type ?? "text"}
-            placeholder={opts?.placeholder}
-            value={val}
-            onChange={e => set(e.target.value)}
-            onFocus={() => setFocused(id)}
-            onBlur={() => setFocused(null)}
-            style={{ borderColor: opts?.error ? "#d0021b" : focused === id ? "#262626" : "#dddbdc", paddingRight: opts?.rightSlot ? 80 : undefined }}
-            autoComplete="off"
-          />
-          {opts?.rightSlot && (
-            <span style={{ position: "absolute", right: 0, top: 0, height: "100%", display: "flex", alignItems: "center" }}>
-              {opts.rightSlot}
-            </span>
-          )}
-        </div>
+        <input
+          id={id}
+          className="admin-form__input"
+          type={opts?.type ?? "text"}
+          placeholder={opts?.placeholder}
+          value={val}
+          onChange={e => set(e.target.value)}
+          onFocus={() => setFocused(id)}
+          onBlur={() => setFocused(null)}
+          style={{ borderColor: opts?.error ? "#d0021b" : focused === id ? "#262626" : "#dddbdc" }}
+          autoComplete="off"
+        />
         {opts?.error && <p className="admin-form__error">{opts.error}</p>}
-        {opts?.hint && !opts.error && <p style={{ fontSize: 11, color: "#737373", letterSpacing: "0.2px", marginTop: 2 }}>{opts.hint}</p>}
+        {opts?.hint && !opts.error && <p style={{ fontSize: 11, color: "#737373", marginTop: 2 }}>{opts.hint}</p>}
       </div>
     );
   }
 
   return (
     <div className="admin-modal-backdrop" onClick={onClose}>
-      <div className="admin-modal" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
+      <div className="admin-modal" style={{ maxWidth: 600, maxHeight: "90vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
         <div className="admin-modal__head">
           <p className="admin-modal__title">{isEdit ? "Editar produto" : "Novo produto"}</p>
           <button className="admin-modal__close" onClick={onClose}><CloseIcon /></button>
         </div>
 
         <form className="admin-form" onSubmit={handleSubmit} noValidate>
-          {input("p-name", "NOME DO PRODUTO", name, setName, {
+          {inputField("p-nome", "NOME DO PRODUTO", nome, setNome, {
             placeholder: "ex: Camiseta de algodão orgânico",
-            error: errors.name,
+            error: errors.nome,
           })}
-
-          {input("p-sku", "SKU", sku, setSku, {
-            placeholder: "EVR-W-TEE-001",
-            error: errors.sku,
-            rightSlot: (
-              <button
-                type="button"
-                onClick={autoGenSku}
-                style={{ padding: "0 10px", height: "100%", fontSize: 10, letterSpacing: "0.6px", color: "#737373", background: "#f5f4f4", border: "none", borderLeft: "1px solid #dddbdc", cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
-              >
-                GERAR
-              </button>
-            ),
-          })}
-
-          <div className="admin-form__row">
-            <div className="admin-form__field">
-              <label className="admin-form__label">CATEGORIA</label>
-              <div className="admin-form__select-wrap" style={{ borderColor: "#dddbdc" }}>
-                <select className="admin-form__select" value={category} onChange={e => setCategory(e.target.value as Category)}>
-                  {CATEGORIES.map(c => <option key={c} value={c}>{categoryLabel(c)}</option>)}
-                </select>
-                <span style={{ pointerEvents: "none", position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)" }}>
-                  <ChevronIcon dir="down" />
-                </span>
-              </div>
-            </div>
-            <div className="admin-form__field">
-              <label className="admin-form__label">STATUS</label>
-              <div className="admin-form__select-wrap" style={{ borderColor: "#dddbdc" }}>
-                <select className="admin-form__select" value={status} onChange={e => setStatus(e.target.value as ProdStatus)}>
-                  {PROD_STATUSES.map(s => <option key={s} value={s}>{prodStatusLabel(s)}</option>)}
-                </select>
-                <span style={{ pointerEvents: "none", position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)" }}>
-                  <ChevronIcon dir="down" />
-                </span>
-              </div>
-            </div>
-          </div>
 
           <div className="admin-form__field">
             <label className="admin-form__label" htmlFor="p-desc">DESCRIÇÃO</label>
             <textarea
               id="p-desc"
               className="admin-form__input"
-              rows={3}
-              placeholder="Descrição para a página de listagem"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
+              rows={2}
+              placeholder="Descrição opcional"
+              value={descricao}
+              onChange={e => setDescricao(e.target.value)}
               onFocus={() => setFocused("p-desc")}
               onBlur={() => setFocused(null)}
               style={{ borderColor: focused === "p-desc" ? "#262626" : "#dddbdc", resize: "vertical", fontFamily: "inherit" }}
@@ -461,38 +272,91 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
           </div>
 
           <div className="admin-form__row">
-            {input("p-price", "PREÇO ($)", price, setPrice, {
-              type: "number", placeholder: "0.00", error: errors.price,
-              hint: "Preço de venda regular",
+            {inputField("p-preco", "PREÇO (R$)", preco, setPreco, {
+              type: "number", placeholder: "0.00", error: errors.preco,
             })}
-            {input("p-compare", "PREÇO DE ($)", comparePrice, setComparePrice, {
-              type: "number", placeholder: "0.00",
-              hint: "Preço original, deixe em branco se não estiver em promoção",
+            {inputField("p-estoque", "ESTOQUE", estoque, setEstoque, {
+              type: "number", placeholder: "0", error: errors.estoque,
             })}
           </div>
 
-          {input("p-stock", "QUANTIDADE EM ESTOQUE", stock, setStock, {
-            type: "number", placeholder: "0", error: errors.stock,
-            hint: "Defina como 0 para marcar sem estoque",
-          })}
+          {/* Tipo de Roupa e Gênero */}
+          <div className="admin-form__row">
+            <div className="admin-form__field">
+              <label className="admin-form__label">TIPO DE ROUPA</label>
+              <div className="admin-form__select-wrap" style={{ borderColor: "#dddbdc" }}>
+                <select className="admin-form__select" value={tipoRoupa} onChange={e => setTipoRoupa(e.target.value)}>
+                  <option value="">— Nenhum —</option>
+                  {TIPOS_ROUPA.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <span style={{ pointerEvents: "none", position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)" }}>
+                  <ChevronIcon dir="down" />
+                </span>
+              </div>
+            </div>
+            <div className="admin-form__field">
+              <label className="admin-form__label">GÊNERO</label>
+              <div className="admin-form__select-wrap" style={{ borderColor: "#dddbdc" }}>
+                <select className="admin-form__select" value={feminino ? "feminino" : "masculino"} onChange={e => setFeminino(e.target.value === "feminino")}>
+                  <option value="masculino">Masculino</option>
+                  <option value="feminino">Feminino</option>
+                </select>
+                <span style={{ pointerEvents: "none", position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)" }}>
+                  <ChevronIcon dir="down" />
+                </span>
+              </div>
+            </div>
+          </div>
 
+          {/* Tamanhos */}
+          <div className="admin-form__field">
+            <label className="admin-form__label">TAMANHOS DISPONÍVEIS</label>
+            <p style={{ fontSize: 11, color: "#737373", marginBottom: 6 }}>Cintura</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
+              {TAMANHOS_CINTURA.map(s => (
+                <button
+                  key={s} type="button" onClick={() => toggleTamanho(s)}
+                  style={{
+                    border: "1px solid #dddbdc", padding: "4px 8px", fontSize: 12, cursor: "pointer",
+                    background: tamanhos.includes(s) ? "#262626" : "#fff",
+                    color: tamanhos.includes(s) ? "#fff" : "#262626",
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+            <p style={{ fontSize: 11, color: "#737373", marginBottom: 6 }}>Roupas</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+              {TAMANHOS_ROUPAS.map(s => (
+                <button
+                  key={s} type="button" onClick={() => toggleTamanho(s)}
+                  style={{
+                    border: "1px solid #dddbdc", padding: "4px 8px", fontSize: 12, cursor: "pointer",
+                    background: tamanhos.includes(s) ? "#262626" : "#fff",
+                    color: tamanhos.includes(s) ? "#fff" : "#262626",
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Cor */}
           <div className="admin-form__field">
             <label className="admin-form__label">COR</label>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-              {COLOR_OPTIONS.map(opt => {
+              {COR_PALETTE.map(opt => {
                 const isLight = parseInt(opt.hex.slice(1), 16) > 0xaaaaaa;
-                const active = colorName === opt.name;
+                const active = cor === opt.nome;
                 return (
                   <button
-                    key={opt.name}
-                    type="button"
-                    title={opt.name}
-                    onClick={() => setColorName(opt.name)}
+                    key={opt.nome} type="button" title={opt.label}
+                    onClick={() => setCor(active ? "" : opt.nome)}
                     style={{
-                      width: 28, height: 28,
-                      background: opt.hex,
+                      width: 28, height: 28, background: opt.hex, cursor: "pointer",
                       border: active ? "2px solid #262626" : isLight ? "1px solid #dddbdc" : "2px solid transparent",
-                      cursor: "pointer",
                       outline: active ? "2px solid #fff" : "none",
                       outlineOffset: active ? "-4px" : "0",
                       flexShrink: 0,
@@ -500,14 +364,103 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
                   />
                 );
               })}
-              <span style={{ fontSize: 12, color: "#737373", letterSpacing: "0.4px", marginLeft: 4 }}>{colorName}</span>
+              <span style={{ fontSize: 12, color: "#737373", marginLeft: 4 }}>
+                {COR_PALETTE.find(c => c.nome === cor)?.label ?? (cor ? cor : "Nenhuma")}
+              </span>
+            </div>
+          </div>
+
+          {/* Upload de imagem */}
+          <div className="admin-form__field">
+            <label className="admin-form__label">IMAGEM DO PRODUTO</label>
+            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <div style={{
+                width: 72, height: 72, flexShrink: 0,
+                border: "1px solid #dddbdc",
+                background: "#f5f5f5",
+                overflow: "hidden",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {uploading ? (
+                  <span style={{ fontSize: 10, color: "#737373" }}>...</span>
+                ) : imagemUrl ? (
+                  <img src={imagemUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <span style={{ fontSize: 10, color: "#b0aeae" }}>sem img</span>
+                )}
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleFileChange}
+                />
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn--ghost"
+                    style={{ fontSize: 12, padding: "5px 10px" }}
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploading ? "Enviando..." : imagemUrl ? "Trocar imagem" : "Escolher imagem"}
+                  </button>
+                  {imagemUrl && !uploading && (
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn--ghost"
+                      style={{ fontSize: 12, padding: "5px 10px", color: "#d0021b", borderColor: "#d0021b" }}
+                      onClick={() => setImagemUrl("")}
+                    >
+                      Remover
+                    </button>
+                  )}
+                </div>
+                {uploadError && (
+                  <p style={{ fontSize: 11, color: "#d0021b", marginTop: 4 }}>{uploadError}</p>
+                )}
+                {!uploadError && (
+                  <p style={{ fontSize: 11, color: "#737373", marginTop: 4 }}>PNG, JPG ou WEBP · máx. 5 MB</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Status e checkboxes */}
+          <div className="admin-form__row" style={{ alignItems: "center" }}>
+            <div className="admin-form__field">
+              <label className="admin-form__label">STATUS</label>
+              <div className="admin-form__select-wrap" style={{ borderColor: "#dddbdc" }}>
+                <select className="admin-form__select" value={status ? "ativo" : "inativo"} onChange={e => setStatus(e.target.value === "ativo")}>
+                  <option value="ativo">Ativo</option>
+                  <option value="inativo">Inativo</option>
+                </select>
+                <span style={{ pointerEvents: "none", position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)" }}>
+                  <ChevronIcon dir="down" />
+                </span>
+              </div>
+            </div>
+            <div className="admin-form__field" style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 20 }}>
+              {([
+                { label: "Popular", state: popular, set: setPopular },
+                { label: "Novo",    state: novo,    set: setNovo },
+                { label: "Social",  state: social,  set: setSocial },
+              ] as const).map(({ label, state, set }) => (
+                <label key={label} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#262626" }}>
+                  <input type="checkbox" checked={state} onChange={e => set(e.target.checked)} style={{ cursor: "pointer" }} />
+                  {label}
+                </label>
+              ))}
             </div>
           </div>
 
           <div className="admin-modal__actions">
-            <button type="button" className="admin-btn admin-btn--ghost" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="admin-btn admin-btn--dark">
-              {isEdit ? "Salvar alterações" : "Adicionar produto"}
+            <button type="button" className="admin-btn admin-btn--ghost" onClick={onClose} disabled={saving}>Cancelar</button>
+            <button type="submit" className="admin-btn admin-btn--dark" disabled={saving}>
+              {saving ? "Salvando..." : isEdit ? "Salvar alterações" : "Adicionar produto"}
             </button>
           </div>
         </form>
@@ -516,7 +469,7 @@ function ProductFormModal({ initial, onSave, onClose }: ProdFormProps) {
   );
 }
 
-function DeleteModal({ product, onConfirm, onClose }: { product: Product; onConfirm: () => void; onClose: () => void }) {
+function DeleteModal({ produto, onConfirm, onClose }: { produto: Produto; onConfirm: () => void; onClose: () => void }) {
   return (
     <div className="admin-modal-backdrop" onClick={onClose}>
       <div className="admin-modal admin-modal--sm" onClick={e => e.stopPropagation()}>
@@ -525,8 +478,8 @@ function DeleteModal({ product, onConfirm, onClose }: { product: Product; onConf
           <button className="admin-modal__close" onClick={onClose}><CloseIcon /></button>
         </div>
         <p className="admin-delete__msg">
-          Tem certeza que deseja excluir <strong>{product.name}</strong>?{" "}
-          Isso removerá o produto da loja permanentemente.
+          Tem certeza que deseja excluir <strong>{produto.nome}</strong>?{" "}
+          Isso removerá o produto permanentemente.
         </p>
         <div className="admin-modal__actions">
           <button className="admin-btn admin-btn--ghost" onClick={onClose}>Cancelar</button>
@@ -537,125 +490,99 @@ function DeleteModal({ product, onConfirm, onClose }: { product: Product; onConf
   );
 }
 
-const PAGE_SIZE = 7;
+const PAGE_SIZE = 10;
 
 export function AdminProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  usePageTitle("Produtos — Admin");
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [carregando, setCarregando] = useState(true);
   const [search, setSearch] = useState("");
-  const [catFilter, setCatFilter] = useState<Category | "All">("All");
-  const [statusFilter, setStatusFilter] = useState<ProdStatus | "All">("All");
-  const [sortBy, setSortBy] = useState<"name" | "price" | "stock" | "createdAt">("createdAt");
+  const [tipoFilter, setTipoFilter] = useState<string>("all");
+  const [generoFilter, setGeneroFilter] = useState<"all" | "feminino" | "masculino">("all");
+  const [sortBy, setSortBy] = useState<"nome" | "preco" | "estoque" | "criado_em">("criado_em");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
-  const [editTarget, setEditTarget] = useState<Product | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [editTarget, setEditTarget] = useState<Produto | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Produto | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [toastError, setToastError] = useState<string | null>(null);
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2800);
   }
 
-  async function refreshProducts() {
-    setErrorMessage(null);
-    try {
-      const loadedProducts = await loadProductsFromApi();
-      setProducts(loadedProducts);
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Erro ao carregar produtos.");
-    } finally {
-      setIsLoading(false);
-    }
+  function showError(msg: string) {
+    setToastError(msg);
+    setTimeout(() => setToastError(null), 3500);
   }
 
-  useEffect(() => {
-    refreshProducts();
-  }, []);
+  function loadProdutos() {
+    setCarregando(true);
+    produtoApi.getAll()
+      .then(data => setProdutos(data))
+      .catch(() => showError("Erro ao carregar produtos."))
+      .finally(() => setCarregando(false));
+  }
+
+  useEffect(() => { loadProdutos(); }, []);
+
+  async function handleCreate(data: ProdutoPayload) {
+    await produtoApi.create(data);
+    setShowForm(false);
+    showToast("Produto adicionado com sucesso.");
+    loadProdutos();
+    setPage(1);
+  }
+
+  async function handleEdit(data: ProdutoPayload) {
+    await produtoApi.update(editTarget!.id, data);
+    setEditTarget(null);
+    setShowForm(false);
+    showToast("Produto atualizado.");
+    loadProdutos();
+  }
+
+  async function handleDelete() {
+    await produtoApi.delete(deleteTarget!.id);
+    setDeleteTarget(null);
+    showToast("Produto excluído.");
+    loadProdutos();
+    if (paginated.length === 1 && page > 1) setPage(p => p - 1);
+  }
 
   const filtered = useMemo(() => {
-    let list = products.filter(p => {
+    let list = produtos.filter(p => {
       const q = search.toLowerCase();
-      const matchSearch = !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.colorName.toLowerCase().includes(q);
-      const matchCat = catFilter === "All" || p.category === catFilter;
-      const matchStatus = statusFilter === "All" || p.status === statusFilter;
-      return matchSearch && matchCat && matchStatus;
+      const matchSearch = !q || p.nome.toLowerCase().includes(q) || (p.tipo_roupa ?? "").toLowerCase().includes(q);
+      const matchTipo = tipoFilter === "all" || p.tipo_roupa === tipoFilter;
+      const matchGenero = generoFilter === "all" || (generoFilter === "feminino" ? p.feminino : !p.feminino);
+      return matchSearch && matchTipo && matchGenero;
     });
 
     list = [...list].sort((a, b) => {
       let cmp = 0;
-      if (sortBy === "name") cmp = a.name.localeCompare(b.name);
-      if (sortBy === "price") cmp = a.price - b.price;
-      if (sortBy === "stock") cmp = a.stock - b.stock;
-      if (sortBy === "createdAt") cmp = a.createdAt.localeCompare(b.createdAt);
+      if (sortBy === "nome") cmp = a.nome.localeCompare(b.nome);
+      if (sortBy === "preco") cmp = a.preco - b.preco;
+      if (sortBy === "estoque") cmp = a.estoque - b.estoque;
+      if (sortBy === "criado_em") cmp = a.criado_em.localeCompare(b.criado_em);
       return sortDir === "asc" ? cmp : -cmp;
     });
 
     return list;
-  }, [products, search, catFilter, statusFilter, sortBy, sortDir]);
+  }, [produtos, search, tipoFilter, generoFilter, sortBy, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  function handleSort(col: "name" | "price" | "stock" | "createdAt") {
+  function handleSort(col: "nome" | "preco" | "estoque" | "criado_em") {
     if (sortBy === col) setSortDir(d => d === "asc" ? "desc" : "asc");
     else { setSortBy(col); setSortDir("asc"); }
     setPage(1);
   }
 
-  async function handleCreate(data: ProdFormPayload) {
-    setIsSaving(true);
-    try {
-      const created = await createProductInApi(data);
-      setProducts(prev => [created, ...prev]);
-      setShowForm(false);
-      showToast("Produto adicionado com sucesso.");
-      setPage(1);
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : "Erro ao criar produto.");
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
-  async function handleEdit(data: ProdFormPayload) {
-    if (!editTarget) return;
-
-    setIsSaving(true);
-    try {
-      const updated = await updateProductInApi(editTarget.id, data);
-      setProducts(prev => prev.map(p => p.id === editTarget.id ? updated : p));
-      setEditTarget(null);
-      setShowForm(false);
-      showToast("Produto atualizado.");
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : "Erro ao atualizar produto.");
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!deleteTarget) return;
-
-    setIsSaving(true);
-    try {
-      await deleteProductInApi(deleteTarget.id);
-      setProducts(prev => prev.filter(p => p.id !== deleteTarget.id));
-      setDeleteTarget(null);
-      showToast("Produto excluído.");
-      if (paginated.length === 1 && page > 1) setPage(p => p - 1);
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : "Erro ao excluir produto.");
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
-  function SortTh({ col, label, right }: { col: "name" | "price" | "stock" | "createdAt"; label: string; right?: boolean }) {
+  function SortTh({ col, label, right }: { col: "nome" | "preco" | "estoque" | "criado_em"; label: string; right?: boolean }) {
     const active = sortBy === col;
     return (
       <th
@@ -671,9 +598,10 @@ export function AdminProductsPage() {
     );
   }
 
-  const activeCount = products.filter(p => p.status === "Active").length;
-  const outOfStock = products.filter(p => p.stock === 0).length;
-  const onSaleCount = products.filter(p => p.comparePrice != null).length;
+  const activeCount   = produtos.filter(p => p.status).length;
+  const inactiveCount = produtos.filter(p => !p.status).length;
+  const outOfStock    = produtos.filter(p => p.estoque === 0).length;
+  const onSaleCount   = produtos.filter(p => p.em_sale).length;
 
   return (
     <div className="admin-page">
@@ -683,38 +611,24 @@ export function AdminProductsPage() {
         <div className="admin-topbar">
           <div>
             <p className="admin-topbar__title">Catálogo de produtos</p>
-            <p className="admin-topbar__sub">{products.length} itens · {activeCount} ativos</p>
+            <p className="admin-topbar__sub">{produtos.length} itens · {activeCount} ativos · {inactiveCount} inativos</p>
           </div>
           <button
             className="admin-btn admin-btn--dark admin-btn--icon"
             onClick={() => { setEditTarget(null); setShowForm(true); }}
-            disabled={isSaving}
           >
             <PlusIcon />
             Adicionar produto
           </button>
         </div>
 
-        {errorMessage && (
-          <div style={{
-            border: "1px solid #f3c2c9",
-            background: "#fff4f6",
-            color: "#8a1c2a",
-            padding: "10px 12px",
-            marginBottom: 16,
-            fontSize: 13,
-          }}>
-            {errorMessage}
-          </div>
-        )}
-
         <div className="admin-stats">
           {[
-            { label: "Total de itens", value: products.length },
-            { label: "Ativos", value: activeCount },
-            { label: "Inativos", value: products.filter(p => p.status === "Inactive").length },
-            { label: "Em promoção", value: onSaleCount },
-            { label: "Sem estoque", value: outOfStock },
+            { label: "Total de itens",  value: produtos.length },
+            { label: "Ativos",          value: activeCount },
+            { label: "Inativos",        value: inactiveCount },
+            { label: "Em promoção",     value: onSaleCount },
+            { label: "Sem estoque",     value: outOfStock },
           ].map(s => (
             <div key={s.label} className="admin-stat">
               <p className="admin-stat__value">{s.value}</p>
@@ -728,7 +642,7 @@ export function AdminProductsPage() {
             <span className="admin-search__icon"><SearchIcon /></span>
             <input
               className="admin-search__input"
-              placeholder="Buscar por nome, SKU ou cor..."
+              placeholder="Buscar por nome ou tipo..."
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1); }}
             />
@@ -736,21 +650,22 @@ export function AdminProductsPage() {
 
           <div className="admin-filters">
             <div className="admin-filter-select-wrap">
-              <select className="admin-filter-select" value={catFilter} onChange={e => { setCatFilter(e.target.value as Category | "All"); setPage(1); }}>
-                <option value="All">Todas as categorias</option>
-                {CATEGORIES.map(c => <option key={c} value={c}>{categoryLabel(c)}</option>)}
+              <select className="admin-filter-select" value={tipoFilter} onChange={e => { setTipoFilter(e.target.value); setPage(1); }}>
+                <option value="all">Todos os tipos</option>
+                {TIPOS_ROUPA.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
               <span className="admin-filter-chevron"><ChevronIcon dir="down" /></span>
             </div>
             <div className="admin-filter-select-wrap">
-              <select className="admin-filter-select" value={statusFilter} onChange={e => { setStatusFilter(e.target.value as ProdStatus | "All"); setPage(1); }}>
-                <option value="All">Todos os status</option>
-                {PROD_STATUSES.map(s => <option key={s} value={s}>{prodStatusLabel(s)}</option>)}
+              <select className="admin-filter-select" value={generoFilter} onChange={e => { setGeneroFilter(e.target.value as "all" | "feminino" | "masculino"); setPage(1); }}>
+                <option value="all">Todos os gêneros</option>
+                <option value="feminino">Feminino</option>
+                <option value="masculino">Masculino</option>
               </select>
               <span className="admin-filter-chevron"><ChevronIcon dir="down" /></span>
             </div>
-            {(search || catFilter !== "All" || statusFilter !== "All") && (
-              <button className="admin-btn admin-btn--ghost" onClick={() => { setSearch(""); setCatFilter("All"); setStatusFilter("All"); setPage(1); }}>
+            {(search || tipoFilter !== "all" || generoFilter !== "all") && (
+              <button className="admin-btn admin-btn--ghost" onClick={() => { setSearch(""); setTipoFilter("all"); setGeneroFilter("all"); setPage(1); }}>
                 Limpar
               </button>
             )}
@@ -761,69 +676,67 @@ export function AdminProductsPage() {
           <table className="admin-table">
             <thead>
               <tr>
-                <SortTh col="name" label="Produto" />
-                <th className="admin-table__th">SKU</th>
-                <th className="admin-table__th">Categoria</th>
-                <SortTh col="price" label="Preço" right />
-                <SortTh col="stock" label="Estoque" right />
+                <SortTh col="nome" label="Produto" />
+                <th className="admin-table__th">Tipo</th>
+                <th className="admin-table__th">Gênero</th>
+                <SortTh col="preco" label="Preço" right />
+                <SortTh col="estoque" label="Estoque" right />
                 <th className="admin-table__th">Status</th>
-                <SortTh col="createdAt" label="Adicionado" />
+                <SortTh col="criado_em" label="Adicionado" />
                 <th className="admin-table__th admin-table__th--actions">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {isLoading ? (
+              {carregando ? (
                 <tr>
-                  <td colSpan={8} className="admin-table__empty">
-                    Carregando produtos...
-                  </td>
+                  <td colSpan={8} className="admin-table__empty">Carregando...</td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="admin-table__empty">
-                    Nenhum produto corresponde aos filtros.
-                  </td>
+                  <td colSpan={8} className="admin-table__empty">Nenhum produto encontrado.</td>
                 </tr>
               ) : paginated.map(p => (
                 <tr key={p.id} className="admin-table__row">
                   <td className="admin-table__td">
-                    <ProductThumb color={p.color} colorName={p.colorName} name={p.name} />
-                  </td>
-                  <td className="admin-table__td admin-table__td--muted" style={{ fontSize: 11, letterSpacing: "0.4px" }}>
-                    {p.sku}
+                    <ProductThumb produto={p} />
                   </td>
                   <td className="admin-table__td">
-                    <span style={{ fontSize: 11, letterSpacing: "0.6px", color: "#737373", textTransform: "uppercase" }}>
-                      {categoryLabel(p.category)}
+                    <span style={{ fontSize: 11, letterSpacing: "0.6px", color: "#737373" }}>
+                      {p.tipo_roupa ?? <span style={{ color: "#b0aeae" }}>—</span>}
+                    </span>
+                  </td>
+                  <td className="admin-table__td">
+                    <span style={{ fontSize: 11, letterSpacing: "0.6px", color: "#737373" }}>
+                      {p.feminino ? "Feminino" : "Masculino"}
                     </span>
                   </td>
                   <td className="admin-table__td" style={{ textAlign: "right" }}>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
-                      <span style={{ fontSize: 13, color: "#262626" }}>{fmtPrice(p.price)}</span>
-                      {p.comparePrice && (
-                        <span style={{ fontSize: 11, color: "#b0aeae", textDecoration: "line-through" }}>
-                          {fmtPrice(p.comparePrice)}
-                        </span>
+                      {p.em_sale && p.preco_sale != null ? (
+                        <>
+                          <span style={{ fontSize: 13, color: "#c0392b" }}>{fmtPreco(p.preco_sale)}</span>
+                          <span style={{ fontSize: 11, color: "#b0aeae", textDecoration: "line-through" }}>{fmtPreco(p.preco)}</span>
+                        </>
+                      ) : (
+                        <span style={{ fontSize: 13, color: "#262626" }}>{fmtPreco(p.preco)}</span>
                       )}
                     </div>
                   </td>
                   <td className="admin-table__td" style={{ textAlign: "right" }}>
-                    <StockBadge stock={p.stock} />
+                    <StockBadge stock={p.estoque} />
                   </td>
                   <td className="admin-table__td"><StatusBadge status={p.status} /></td>
-                  <td className="admin-table__td admin-table__td--muted">{fmtDate(p.createdAt)}</td>
+                  <td className="admin-table__td admin-table__td--muted">{fmtDate(p.criado_em)}</td>
                   <td className="admin-table__td admin-table__td--actions">
                     <button
                       className="admin-action-btn"
                       onClick={() => { setEditTarget(p); setShowForm(true); }}
-                      disabled={isSaving}
                     >
                       <EditIcon /> Editar
                     </button>
                     <button
                       className="admin-action-btn admin-action-btn--danger"
                       onClick={() => setDeleteTarget(p)}
-                      disabled={isSaving}
                     >
                       <TrashIcon /> Excluir
                     </button>
@@ -861,9 +774,10 @@ export function AdminProductsPage() {
           onClose={() => { setShowForm(false); setEditTarget(null); }}
         />
       )}
+
       {deleteTarget && (
         <DeleteModal
-          product={deleteTarget}
+          produto={deleteTarget}
           onConfirm={handleDelete}
           onClose={() => setDeleteTarget(null)}
         />
@@ -873,6 +787,12 @@ export function AdminProductsPage() {
         <div className="admin-toast">
           <span className="admin-toast__dot" />
           {toast}
+        </div>
+      )}
+
+      {toastError && (
+        <div className="admin-toast" style={{ background: "#d0021b" }}>
+          {toastError}
         </div>
       )}
     </div>

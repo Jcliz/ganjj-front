@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -61,8 +62,13 @@ function Field({
 }
 
 export function CheckoutPage() {
+  usePageTitle("Checkout");
   const navigate = useNavigate();
-  const { usuario } = useAuth();
+  const { usuario, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !usuario) navigate("/login", { replace: true });
+  }, [loading, usuario, navigate]);
   const { items, subtotal, clearCart } = useCart();
   const [step,      setStep]      = useState<Step>(1);
   const [focused,   setFocused]   = useState<string | null>(null);
@@ -135,7 +141,6 @@ export function CheckoutPage() {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          usuario_id: usuario?.id ?? null,
           itens: items.map(item => ({
             produto_id: item.produto_id,
             quantidade: item.quantidade,
