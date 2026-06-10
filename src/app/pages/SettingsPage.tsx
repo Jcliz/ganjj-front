@@ -25,39 +25,6 @@ function LockIcon() {
   );
 }
 
-function ChevronRightIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <polyline points="9,6 15,12 9,18" stroke="#b0aeae" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-// ─── Toggle ───────────────────────────────────────────────────────────────────
-
-function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div
-      onClick={() => onChange(!on)}
-      style={{
-        width: 40, height: 22, borderRadius: 11,
-        background: on ? "#262626" : "#dddbdc",
-        position: "relative", cursor: "pointer",
-        transition: "background 0.2s", flexShrink: 0,
-      }}
-    >
-      <span style={{
-        position: "absolute", top: 3,
-        left: on ? 21 : 3,
-        width: 16, height: 16, borderRadius: "50%",
-        background: "#fff",
-        transition: "left 0.2s",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-      }} />
-    </div>
-  );
-}
-
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 
 function SettingsSection({
@@ -74,28 +41,6 @@ function SettingsSection({
   );
 }
 
-function SettingsRow({
-  label, value, hint, onClick, toggle, children
-}: {
-  label: string; value?: string; hint?: string;
-  onClick?: () => void; toggle?: React.ReactNode; children?: React.ReactNode;
-}) {
-  return (
-    <div className={`settings-row${onClick ? " settings-row--clickable" : ""}`} onClick={onClick}>
-      <div className="settings-row__left">
-        <p className="settings-row__label">{label}</p>
-        {(value || hint) && (
-          <p className="settings-row__hint">{value || hint}</p>
-        )}
-        {children}
-      </div>
-      <div className="settings-row__right">
-        {toggle}
-        {onClick && !toggle && <ChevronRightIcon />}
-      </div>
-    </div>
-  );
-}
 
 // ─── Sidebar nav ──────────────────────────────────────────────────────────────
 

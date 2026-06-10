@@ -37,7 +37,7 @@ function ProdutoNaoEncontrado() {
   const navigate = useNavigate();
   return (
     <div className="page">
-      <Header activeTab="men" />
+      <Header activeTab="masculino" />
       <div style={{
         flex: 1, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
@@ -123,7 +123,7 @@ export function ProductDetailPage() {
   if (carregando) {
     return (
       <div className="page">
-        <Header activeTab="men" />
+        <Header activeTab="masculino" />
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 40px" }}>
           <p style={{ fontSize: 14, color: "#737373", letterSpacing: "0.3px" }}>Carregando produto...</p>
         </div>
@@ -136,7 +136,7 @@ export function ProductDetailPage() {
 
   return (
     <div className="page">
-      <Header activeTab={produto.feminino ? "women" : "men"} />
+      <Header activeTab={produto.feminino ? "feminino" : "masculino"} />
 
       {/* Breadcrumb */}
       <div style={{ padding: "12px 40px", borderBottom: "1px solid #dddbdc" }}>

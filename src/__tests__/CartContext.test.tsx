@@ -91,3 +91,137 @@ describe('CartProvider - updateItem com quantidade < 1', () => {
     expect(deleteCall).toBeDefined();
   });
 });
+
+describe('CartProvider - addItem', () => {
+  it('faz POST e recarrega o carrinho', async () => {
+    vi.stubGlobal(
+      'fetch',
+      makeFetchChain([
+        { ok: true, body: { usuario: mockUsuario } },
+        { ok: true, body: { itens: [] } },
+        { ok: true, body: { message: 'adicionado' } },
+        { ok: true, body: { itens: mockItems } },
+      ])
+    );
+
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.addItem(10, 2);
+    });
+
+    expect(result.current.items).toHaveLength(2);
+    const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls as Array<[string, RequestInit]>;
+    const postCall = calls.find(([url, opts]) => url.includes('/api/cesta/itens') && opts.method === 'POST');
+    expect(postCall).toBeDefined();
+  });
+});
+
+describe('CartProvider - updateItem com quantidade válida', () => {
+  it('faz PUT quando a quantidade é maior que zero', async () => {
+    vi.stubGlobal(
+      'fetch',
+      makeFetchChain([
+        { ok: true, body: { usuario: mockUsuario } },
+        { ok: true, body: { itens: mockItems } },
+        { ok: true, body: { message: 'atualizado' } },
+        { ok: true, body: { itens: mockItems } },
+      ])
+    );
+
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+
+    await act(async () => {
+      await result.current.updateItem(10, 5);
+    });
+
+    const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls as Array<[string, RequestInit]>;
+    const putCall = calls.find(([url, opts]) => url.includes('/api/cesta/itens/10') && opts.method === 'PUT');
+    expect(putCall).toBeDefined();
+  });
+});
+
+describe('CartProvider - removeItem', () => {
+  it('faz DELETE e recarrega o carrinho', async () => {
+    vi.stubGlobal(
+      'fetch',
+      makeFetchChain([
+        { ok: true, body: { usuario: mockUsuario } },
+        { ok: true, body: { itens: mockItems } },
+        { ok: true, body: { message: 'removido' } },
+        { ok: true, body: { itens: [mockItems[1]] } },
+      ])
+    );
+
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+
+    await act(async () => {
+      await result.current.removeItem(10);
+    });
+
+    expect(result.current.items).toHaveLength(1);
+  });
+});
+
+describe('CartProvider - clearCart', () => {
+  it('esvazia os itens localmente após o DELETE', async () => {
+    vi.stubGlobal(
+      'fetch',
+      makeFetchChain([
+        { ok: true, body: { usuario: mockUsuario } },
+        { ok: true, body: { itens: mockItems } },
+        { ok: true, body: { message: 'limpa' } },
+      ])
+    );
+
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+
+    await act(async () => {
+      await result.current.clearCart();
+    });
+
+    expect(result.current.items).toHaveLength(0);
+    expect(result.current.itemCount).toBe(0);
+    expect(result.current.subtotal).toBe(0);
+  });
+});
+
+describe('CartProvider - sem usuário logado', () => {
+  it('mantém o carrinho vazio e não busca a cesta', async () => {
+    vi.stubGlobal(
+      'fetch',
+      makeFetchChain([
+        // AuthProvider.me() → não autenticado
+        { ok: false, body: { error: 'Não autenticado' } },
+      ])
+    );
+
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.items).toHaveLength(0);
+    const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls as Array<[string, RequestInit]>;
+    expect(calls.some(([url]) => url.includes('/api/cesta'))).toBe(false);
+  });
+});
+
+describe('CartProvider - erro ao buscar a cesta', () => {
+  it('zera os itens quando o fetch da cesta falha', async () => {
+    vi.stubGlobal(
+      'fetch',
+      makeFetchChain([
+        { ok: true, body: { usuario: mockUsuario } },
+        { ok: false, body: { error: 'Erro ao buscar cesta' } },
+      ])
+    );
+
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.items).toHaveLength(0);
+  });
+});

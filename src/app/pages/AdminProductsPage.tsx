@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { produtoApi, uploadApi, type Produto, type ProdutoPayload } from "../../lib/api";
@@ -493,6 +493,27 @@ function DeleteModal({ produto, onConfirm, onClose }: { produto: Produto; onConf
 
 const PAGE_SIZE = 10;
 
+function SortTh({ label, active, dir, right, onClick }: {
+  label: string;
+  active: boolean;
+  dir: "asc" | "desc";
+  right?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <th
+      className="admin-table__th admin-table__th--sortable"
+      onClick={onClick}
+      style={{ color: active ? "#262626" : "#737373", textAlign: right ? "right" : "left" }}
+    >
+      {label}
+      <span style={{ marginLeft: 4, opacity: active ? 1 : 0.4 }}>
+        <ChevronIcon dir={active && dir === "asc" ? "up" : "down"} />
+      </span>
+    </th>
+  );
+}
+
 export function AdminProductsPage() {
   usePageTitle("Produtos — Admin");
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -514,20 +535,20 @@ export function AdminProductsPage() {
     setTimeout(() => setToast(null), 2800);
   }
 
-  function showError(msg: string) {
+  const showError = useCallback((msg: string) => {
     setToastError(msg);
     setTimeout(() => setToastError(null), 3500);
-  }
+  }, []);
 
-  function loadProdutos() {
+  const loadProdutos = useCallback(() => {
     setCarregando(true);
     produtoApi.getAll()
       .then(data => setProdutos(data))
       .catch(() => showError("Erro ao carregar produtos."))
       .finally(() => setCarregando(false));
-  }
+  }, [showError]);
 
-  useEffect(() => { loadProdutos(); }, []);
+  useEffect(() => { loadProdutos(); }, [loadProdutos]);
 
   async function handleCreate(data: ProdutoPayload) {
     await produtoApi.create(data);
@@ -581,22 +602,6 @@ export function AdminProductsPage() {
     if (sortBy === col) setSortDir(d => d === "asc" ? "desc" : "asc");
     else { setSortBy(col); setSortDir("asc"); }
     setPage(1);
-  }
-
-  function SortTh({ col, label, right }: { col: "nome" | "preco" | "estoque" | "criado_em"; label: string; right?: boolean }) {
-    const active = sortBy === col;
-    return (
-      <th
-        className="admin-table__th admin-table__th--sortable"
-        onClick={() => handleSort(col)}
-        style={{ color: active ? "#262626" : "#737373", textAlign: right ? "right" : "left" }}
-      >
-        {label}
-        <span style={{ marginLeft: 4, opacity: active ? 1 : 0.4 }}>
-          <ChevronIcon dir={active && sortDir === "asc" ? "up" : "down"} />
-        </span>
-      </th>
-    );
   }
 
   const activeCount = produtos.filter(p => p.status).length;
@@ -677,13 +682,13 @@ export function AdminProductsPage() {
           <table className="admin-table">
             <thead>
               <tr>
-                <SortTh col="nome" label="Produto" />
+                <SortTh label="Produto" active={sortBy === "nome"} dir={sortDir} onClick={() => handleSort("nome")} />
                 <th className="admin-table__th">Tipo</th>
                 <th className="admin-table__th">Gênero</th>
-                <SortTh col="preco" label="Preço" right />
-                <SortTh col="estoque" label="Estoque" right />
+                <SortTh label="Preço" right active={sortBy === "preco"} dir={sortDir} onClick={() => handleSort("preco")} />
+                <SortTh label="Estoque" right active={sortBy === "estoque"} dir={sortDir} onClick={() => handleSort("estoque")} />
                 <th className="admin-table__th">Status</th>
-                <SortTh col="criado_em" label="Adicionado" />
+                <SortTh label="Adicionado" active={sortBy === "criado_em"} dir={sortDir} onClick={() => handleSort("criado_em")} />
                 <th className="admin-table__th admin-table__th--actions">Ações</th>
               </tr>
             </thead>

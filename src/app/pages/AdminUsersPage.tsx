@@ -308,6 +308,26 @@ function DeleteModal({ user, onConfirm, onClose }: { user: User; onConfirm: () =
 
 const PAGE_SIZE = 6;
 
+function SortTh({ label, active, dir, onClick }: {
+  label: string;
+  active: boolean;
+  dir: "asc" | "desc";
+  onClick: () => void;
+}) {
+  return (
+    <th
+      className="admin-table__th admin-table__th--sortable"
+      onClick={onClick}
+      style={{ color: active ? "#262626" : "#737373" }}
+    >
+      {label}
+      <span style={{ marginLeft: 4, opacity: active ? 1 : 0.4 }}>
+        <ChevronIcon dir={active && dir === "asc" ? "up" : "down"} />
+      </span>
+    </th>
+  );
+}
+
 export function AdminUsersPage() {
   usePageTitle("Usuários");
   useNavigate();
@@ -381,24 +401,8 @@ export function AdminUsersPage() {
     if (paginated.length === 1 && page > 1) setPage(p => p - 1);
   }
 
-  function SortTh({ col, label }: { col: "name" | "joined" | "role"; label: string }) {
-    const active = sortBy === col;
-    return (
-      <th
-        className="admin-table__th admin-table__th--sortable"
-        onClick={() => handleSort(col)}
-        style={{ color: active ? "#262626" : "#737373" }}
-      >
-        {label}
-        <span style={{ marginLeft: 4, opacity: active ? 1 : 0.4 }}>
-          <ChevronIcon dir={active && sortDir === "asc" ? "up" : "down"} />
-        </span>
-      </th>
-    );
-  }
-
-  const activeCount   = users.filter(u => u.status === "Active").length;
-  const adminCount    = users.filter(u => u.role === "Admin").length;
+  const activeCount = users.filter(u => u.status === "Active").length;
+  const adminCount = users.filter(u => u.role === "Admin").length;
 
   return (
     <div className="admin-page">
@@ -484,11 +488,11 @@ export function AdminUsersPage() {
           <table className="admin-table">
             <thead>
               <tr>
-                <SortTh col="name"   label="usuário" />
+                <SortTh label="usuário" active={sortBy === "name"} dir={sortDir} onClick={() => handleSort("name")} />
                 <th className="admin-table__th">E-mail</th>
-                <SortTh col="role"   label="Função" />
+                <SortTh label="Função" active={sortBy === "role"} dir={sortDir} onClick={() => handleSort("role")} />
                 <th className="admin-table__th">Status</th>
-                <SortTh col="joined" label="Entrada" />
+                <SortTh label="Entrada" active={sortBy === "joined"} dir={sortDir} onClick={() => handleSort("joined")} />
                 <th className="admin-table__th admin-table__th--actions">Ações</th>
               </tr>
             </thead>

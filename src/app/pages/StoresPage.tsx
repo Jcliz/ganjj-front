@@ -39,7 +39,7 @@ export function StoresPage() {
   usePageTitle("Lojas");
   return (
     <div className="page">
-      <Header activeTab="about" subNavItems={aboutSubNav} />
+      <Header activeTab="sobre" subNavItems={aboutSubNav} />
 
       <section className="stores-section">
         <div className="stores-header">
