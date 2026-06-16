@@ -1,4 +1,6 @@
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ??
+  'http://localhost:3000';
 
 export interface ApiError {
   error: string;
@@ -26,10 +28,11 @@ async function request<T>(
     },
   });
 
-  const data = await res.json();
+  // Respostas sem corpo (ex.: 204) ou não-JSON não devem quebrar o parse
+  const data: unknown = await res.json().catch(() => null);
 
   if (!res.ok) {
-    throw new Error((data as ApiError).error ?? 'Erro desconhecido.');
+    throw new Error((data as ApiError | null)?.error ?? 'Erro desconhecido.');
   }
 
   return data as T;

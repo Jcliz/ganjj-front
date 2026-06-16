@@ -8,6 +8,14 @@ export default defineConfig({
     environment: 'happy-dom',
     globals: true,
     setupFiles: './src/__tests__/setup.ts',
+    coverage: {
+      provider: 'v8',
+      include: ['src/lib/**', 'src/contexts/**', 'src/app/hooks/**'],
+      thresholds: {
+        statements: 75,
+        lines: 75,
+      },
+    },
   },
   plugins: [
     // The React and Tailwind plugins are both required for Make, even if

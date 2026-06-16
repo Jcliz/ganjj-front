@@ -19,7 +19,7 @@ export function SearchPage() {
 
   return (
     <div className="page">
-      <Header activeTab="men" />
+      <Header activeTab="masculino" />
 
       {/* Search Bar */}
       <section className="search-bar-section">

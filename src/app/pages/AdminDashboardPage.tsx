@@ -206,31 +206,28 @@ function DonutChart({ segments }: { segments: StatusDist[] }) {
   const cy = 60;
   const circumference = 2 * Math.PI * r;
   const total = segments.reduce((s, seg) => s + seg.value, 0);
-  let offset = 0;
+  const dashLengths = segments.map(seg => (seg.value / (total || 1)) * circumference);
+  const offsets = dashLengths.map((_, i) =>
+    dashLengths.slice(0, i).reduce((sum, len) => sum + len, 0)
+  );
 
   const topSegment = segments.length > 0 ? segments[0] : null;
 
   return (
     <div className="dash-donut">
       <svg width="120" height="120" viewBox="0 0 120 120">
-        {segments.map(seg => {
-          const dashLength = (seg.value / (total || 1)) * circumference;
-          const dash = `${dashLength} ${circumference - dashLength}`;
-          const el = (
-            <circle
-              key={seg.label}
-              cx={cx} cy={cy} r={r}
-              fill="none"
-              stroke={seg.color}
-              strokeWidth="20"
-              strokeDasharray={dash}
-              strokeDashoffset={-offset}
-              transform={`rotate(-90 ${cx} ${cy})`}
-            />
-          );
-          offset += dashLength;
-          return el;
-        })}
+        {segments.map((seg, i) => (
+          <circle
+            key={seg.label}
+            cx={cx} cy={cy} r={r}
+            fill="none"
+            stroke={seg.color}
+            strokeWidth="20"
+            strokeDasharray={`${dashLengths[i]} ${circumference - dashLengths[i]}`}
+            strokeDashoffset={-offsets[i]}
+            transform={`rotate(-90 ${cx} ${cy})`}
+          />
+        ))}
         {topSegment && (
           <>
             <text x="60" y="56" textAnchor="middle" fontSize="14" fill="#262626">{topSegment.value}%</text>
@@ -251,7 +248,9 @@ function DonutChart({ segments }: { segments: StatusDist[] }) {
   );
 }
 
-const API_URL = 'http://localhost:3000';
+const API_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ??
+  'http://localhost:3000';
 
 export function AdminDashboardPage() {
   usePageTitle("Dashboard");

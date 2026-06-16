@@ -73,6 +73,7 @@ export function CheckoutPage() {
   const [step,      setStep]      = useState<Step>(1);
   const [focused,   setFocused]   = useState<string | null>(null);
   const [orderId,   setOrderId]   = useState<string | null>(null);
+  const [confirmedAt, setConfirmedAt] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -156,6 +157,7 @@ export function CheckoutPage() {
 
       const data = await res.json();
       setOrderId(data.codigo);
+      setConfirmedAt(Date.now());
       await clearCart();
       setStep(3);
       window.scrollTo(0, 0);
@@ -352,9 +354,9 @@ export function CheckoutPage() {
               </p>
               <p className="checkout-confirmation__eta">
                 Entrega estimada: <strong>
-                  {new Date(Date.now() + 5 * 86400000).toLocaleDateString("pt-BR", { month: "long", day: "numeric", year: "numeric" })}
+                  {new Date((confirmedAt ?? 0) + 5 * 86400000).toLocaleDateString("pt-BR", { month: "long", day: "numeric", year: "numeric" })}
                   {" "}–{" "}
-                  {new Date(Date.now() + 7 * 86400000).toLocaleDateString("pt-BR", { month: "long", day: "numeric", year: "numeric" })}
+                  {new Date((confirmedAt ?? 0) + 7 * 86400000).toLocaleDateString("pt-BR", { month: "long", day: "numeric", year: "numeric" })}
                 </strong>
               </p>
               <p className="checkout-confirmation__email">
