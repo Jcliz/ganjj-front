@@ -142,4 +142,43 @@ Todas as chamadas à API estão centralizadas em [`src/lib/api.ts`](src/lib/api.
 
 Consulte o [README da API](../ganjj-api/README.md) para instruções de configuração do backend e documentação de endpoints.
 
-A documentação interativa da API (Scalar) fica disponível em **`http://localhost:3000/api/docs`** enquanto o backend estiver rodando.
+A documentação interativa da API (Scalar) está publicada online em **https://jcliz.github.io/ganjj-api/** e também fica disponível em **`http://localhost:3000/api/docs`** enquanto o backend estiver rodando.
+
+---
+
+## Gitflow
+
+Estratégia de branches utilizada no repositório do frontend:
+
+![Gitflow do frontend](docs/images/gitflow.png)
+
+---
+
+## Sprints
+
+Acompanhamento das sprints do projeto (boards do Kanban).
+
+### Sprint 1
+
+![Sprint 1 - 1](docs/images/sprint1-1.png)
+![Sprint 1 - 2](docs/images/sprint1-2.png)
+![Sprint 1 - final](docs/images/sprint1-final.png)
+
+### Sprint 2
+
+![Sprint 2 - 1](docs/images/sprint2-1.png)
+![Sprint 2 - final](docs/images/sprint2-final.png)
+
+### Sprint 3
+
+![Sprint 3 - 1](docs/images/sprint3-1.png)
+![Sprint 3 - 2](docs/images/sprint3-2.png)
+![Sprint 3 - 3](docs/images/sprint3-3.png)
+
+### Sprint 4
+
+![Sprint 4](docs/images/sprint4.png)
+
+### Sprint 5
+
+![Sprint 5](docs/images/sprint5.png)
